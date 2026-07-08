@@ -280,6 +280,16 @@
   .overflow-flag{color:var(--red); font-weight:700; font-size:10px; display:block; margin-top:2px;}
   .prosem-grid td.rowlabel.row-overflow{background:#FDECEC;}
 
+  /* ===== Drag & Drop: Program Semester (desktop + mobile) ===== */
+  .drag-handle{cursor:grab;color:#B0BAD0;font-size:18px;padding:0 5px;user-select:none;touch-action:none;
+    display:flex;align-items:center;justify-content:center;min-height:34px;border-radius:7px;transition:color .12s, background .12s;}
+  .drag-handle:hover{color:var(--blue);background:var(--blue-light);}
+  .drag-handle:active{cursor:grabbing;color:var(--blue);}
+  tr.prosem-row.dragging td{opacity:.28;background:#F0F4FE !important;}
+  tr.prosem-row.drag-over td{background:var(--blue-light) !important;outline:2.5px solid var(--blue);outline-offset:-2px;}
+  #drag-ghost{border-radius:10px;overflow:hidden;border:2px solid var(--blue);box-shadow:0 16px 40px -12px rgba(79,70,229,.55);}
+  #drag-ghost td{background:#fff !important;opacity:1 !important;}
+
   .valid-banner{border-radius:13px; padding:13px 15px; margin-bottom:16px; font-size:12.6px;}
   .valid-banner .valid-title{font-weight:700; margin-bottom:4px; font-size:13px;}
   .valid-banner .valid-msg{margin-bottom:8px; line-height:1.45;}
@@ -556,6 +566,7 @@
       <div style="overflow-x:auto;">
         <table id="prosemTable">
           <thead><tr>
+            <th style="width:30px;" class="no-print" title="Seret untuk mengubah urutan"></th>
             <th style="width:26px;">No</th>
             <th style="width:120px;">Jenis</th>
             <th style="width:80px;">Kode</th>
@@ -1668,7 +1679,7 @@ function autoAturJamOtomatis(mi){
   }
   const rpe = getRpeJamEfektif(mapel);
   const cadangan = parseFloat(mapel.cadangan)||0;
-  let target = Math.round(rpe - cadangan); // dibulatkan ke angka bulat (JP utuh)
+  let target = round1(rpe - cadangan); // Bugfix #5: pakai round1 (0,5 JP tetap terjaga), bukan Math.round yang bisa drop 0,5 JP
   if(target < 0){
     if(!confirm(`Cadangan (${cadangan} JP) pada "${mapel.nama}" sudah melebihi jam efektif RPE (${rpe} JP), jadi semua jam KD/IPK/Ulangan akan diatur ke 0. Lanjutkan?`)) return;
     target = 0;
@@ -1903,14 +1914,18 @@ function nextKodeForMapel(mi){
 }
 // Saat satu baris Kode diketik dengan pola "major.minor" (mis. 4.1 atau 4.1.),
 // semua baris KD/IPK di BAWAHNYA otomatis diberi nomor lanjutan (4.2, 4.3, ...)
-// sampai bertemu baris yang nanti diedit manual lagi (yang jadi titik awal baru).
-function cascadeKodeFrom(mi, startRi, bodyEl){
+// sampai bertemu baris dengan major berbeda atau baris yang diedit manual.
+// quiet=true → hanya update data (tanpa save/render), untuk pemanggilan batch dari recascadeAllKodes.
+function cascadeKodeFrom(mi, startRi, bodyEl, quiet){
   const materi = data.mapel[mi].materi;
   const parsed = parseKode(materi[startRi].kode);
   if(parsed){
     let { major, minor, trailingDot } = parsed;
     for(let i = startRi + 1; i < materi.length; i++){
       if(materi[i].jenis !== "kd") continue; // Praktikum/Remidi tidak ikut deret nomor KD
+      // Bugfix #2: hentikan cascade jika major berbeda — baris "4.x" tidak boleh ditimpa cascade dari "3.x"
+      const nextParsed = parseKode(materi[i].kode);
+      if(nextParsed && nextParsed.major !== major) break;
       minor++;
       materi[i].kode = formatKode(major, minor, trailingDot);
       if(bodyEl){
@@ -1919,9 +1934,26 @@ function cascadeKodeFrom(mi, startRi, bodyEl){
       }
     }
   }
-  save();
-  renderProsemPreview(mi); renderProta(); renderSilabusKdList(mi); renderSilabusPreview(mi);
-  refreshAllValidasi();
+  if(!quiet){
+    save();
+    renderProsemPreview(mi); renderProta(); renderSilabusKdList(mi); renderSilabusPreview(mi);
+    refreshAllValidasi();
+  }
+}
+// Bugfix #1: cascade ulang SEMUA grup major berurutan setelah delete/reorder/drag-drop,
+// supaya seluruh deret nomor kembali konsisten tanpa save/render berkali-kali dalam loop.
+function recascadeAllKodes(mi, bodyEl){
+  const materi = (data.mapel[mi] && data.mapel[mi].materi) || [];
+  let lastMajor = null;
+  for(let i = 0; i < materi.length; i++){
+    if(materi[i].jenis !== "kd") continue;
+    const parsed = parseKode(materi[i].kode);
+    if(!parsed){ lastMajor = null; continue; }
+    if(parsed.major !== lastMajor){
+      cascadeKodeFrom(mi, i, bodyEl, true); // quiet — jangan save/render dalam loop
+      lastMajor = parsed.major;
+    }
+  }
 }
 
 function renderMateriTable(mi){
@@ -1930,7 +1962,11 @@ function renderMateriTable(mi){
   body.innerHTML = "";
   (mapel.materi || []).forEach((row, ri)=>{
     const tr = document.createElement("tr");
+    tr.className = "prosem-row";
+    tr.dataset.ri = ri;
+    tr.dataset.mi = mi;
     tr.innerHTML = `
+      <td class="drag-handle no-print" title="Seret untuk mengubah urutan">⠿</td>
       <td class="mono" style="color:var(--muted);">${ri+1}</td>
       <td>
         <select data-mi="${mi}" data-ri="${ri}" data-field="jenis" style="width:100%;">
@@ -1972,21 +2008,153 @@ function renderMateriTable(mi){
     btn.addEventListener("click", e=>{
       const mi2=+e.target.dataset.mi, ri=+e.target.dataset.ri;
       data.mapel[mi2].materi.splice(ri,1);
+      recascadeAllKodes(mi2, null); // Bugfix #1: re-cascade seluruh kode setelah delete
       save(); renderMateriTable(mi2); renderProsemPreview(mi2); renderProta(); refreshAllValidasi();
     });
   });
   body.querySelectorAll('button[data-action="up"]').forEach(btn=>{
     btn.addEventListener("click", e=>{
       const mi2=+e.target.dataset.mi, ri=+e.target.dataset.ri;
-      if(ri>0){ const arr=data.mapel[mi2].materi; [arr[ri-1],arr[ri]]=[arr[ri],arr[ri-1]]; save(); renderMateriTable(mi2); renderProsemPreview(mi2); renderProta(); refreshAllValidasi(); }
+      if(ri>0){ const arr=data.mapel[mi2].materi; [arr[ri-1],arr[ri]]=[arr[ri],arr[ri-1]]; recascadeAllKodes(mi2, null); save(); renderMateriTable(mi2); renderProsemPreview(mi2); renderProta(); refreshAllValidasi(); }
     });
   });
   body.querySelectorAll('button[data-action="down"]').forEach(btn=>{
     btn.addEventListener("click", e=>{
       const mi2=+e.target.dataset.mi, ri=+e.target.dataset.ri;
       const arr=data.mapel[mi2].materi;
-      if(ri<arr.length-1){ [arr[ri+1],arr[ri]]=[arr[ri],arr[ri+1]]; save(); renderMateriTable(mi2); renderProsemPreview(mi2); renderProta(); refreshAllValidasi(); }
+      if(ri<arr.length-1){ [arr[ri+1],arr[ri]]=[arr[ri],arr[ri+1]]; recascadeAllKodes(mi2, null); save(); renderMateriTable(mi2); renderProsemPreview(mi2); renderProta(); refreshAllValidasi(); }
     });
+  });
+  attachDragDrop(body, mi); // Inisialisasi drag & drop desktop + touch
+}
+
+/* ===== DRAG & DROP: Program Semester — desktop (HTML5) + mobile (Touch) ===== */
+
+// Reorder data, cascade kode, simpan, dan re-render setelah drag selesai
+function doReorderMateri(mi, fromRi, toRi){
+  if(fromRi === toRi) return;
+  const arr = data.mapel[mi].materi;
+  const item = arr.splice(fromRi, 1)[0];
+  arr.splice(toRi, 0, item);
+  recascadeAllKodes(mi, null); // perbarui semua kode setelah reorder
+  save();
+  renderMateriTable(mi);
+  renderProsemPreview(mi);
+  renderProta();
+  refreshAllValidasi();
+}
+
+let _dnd = null; // state drag & drop aktif
+
+function attachDragDrop(tbody, mi){
+  const rows = tbody.querySelectorAll('tr.prosem-row');
+  rows.forEach(row=>{
+    const ri = +row.dataset.ri;
+    const handle = row.querySelector('.drag-handle');
+    if(!handle) return;
+
+    /* ---- Desktop: HTML5 Drag & Drop ---- */
+    // drag dimulai dari handle td, drop diterima di seluruh row
+    handle.setAttribute('draggable', 'true');
+
+    handle.addEventListener('dragstart', e=>{
+      _dnd = { mi, fromRi: ri, type: 'desktop' };
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(ri));
+      // timeout agar class dragging tidak langsung override tampilan saat dragstart
+      setTimeout(()=>row.classList.add('dragging'), 0);
+    });
+    handle.addEventListener('dragend', ()=>{
+      row.classList.remove('dragging');
+      tbody.querySelectorAll('.drag-over').forEach(r=>r.classList.remove('drag-over'));
+      _dnd = null;
+    });
+    row.addEventListener('dragover', e=>{
+      if(!_dnd || _dnd.type !== 'desktop' || _dnd.fromRi === ri) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      tbody.querySelectorAll('.drag-over').forEach(r=>r.classList.remove('drag-over'));
+      row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave', e=>{
+      // hanya hapus highlight jika keluar dari row (bukan masuk ke child element)
+      if(!row.contains(e.relatedTarget)) row.classList.remove('drag-over');
+    });
+    row.addEventListener('drop', e=>{
+      e.preventDefault();
+      if(!_dnd || _dnd.type !== 'desktop' || _dnd.fromRi === ri) return;
+      tbody.querySelectorAll('.drag-over').forEach(r=>r.classList.remove('drag-over'));
+      doReorderMateri(mi, _dnd.fromRi, ri);
+      _dnd = null;
+    });
+
+    /* ---- Mobile: Touch Drag ---- */
+    handle.addEventListener('touchstart', e=>{
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = row.getBoundingClientRect();
+      // Buat ghost element yang mengikuti jari
+      const ghost = row.cloneNode(true);
+      ghost.id = 'drag-ghost';
+      Object.assign(ghost.style, {
+        position: 'fixed',
+        left: rect.left + 'px',
+        top: rect.top + 'px',
+        width: rect.width + 'px',
+        zIndex: '9999',
+        pointerEvents: 'none',
+        opacity: '0.88',
+        transform: 'scale(1.025) rotate(0.8deg)',
+        boxShadow: '0 16px 40px -12px rgba(79,70,229,.55)',
+        borderRadius: '10px',
+        border: '2px solid var(--blue)',
+        tableLayout: 'fixed'
+      });
+      document.body.appendChild(ghost);
+      row.classList.add('dragging');
+      _dnd = {
+        mi, fromRi: ri, toRi: ri, type: 'touch',
+        touchId: touch.identifier,
+        ghost,
+        offsetX: touch.clientX - rect.left,
+        offsetY: touch.clientY - rect.top
+      };
+    },{ passive: false });
+
+    handle.addEventListener('touchmove', e=>{
+      if(!_dnd || _dnd.type !== 'touch') return;
+      e.preventDefault();
+      const touch = [...e.touches].find(t=>t.identifier === _dnd.touchId);
+      if(!touch) return;
+      // pindahkan ghost mengikuti jari
+      _dnd.ghost.style.left = (touch.clientX - _dnd.offsetX) + 'px';
+      _dnd.ghost.style.top  = (touch.clientY - _dnd.offsetY) + 'px';
+      // temukan baris target di bawah jari (sembunyikan ghost sesaat agar elementFromPoint bisa mendeteksi)
+      _dnd.ghost.style.display = 'none';
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      _dnd.ghost.style.display = '';
+      const targetRow = el && el.closest('tr.prosem-row');
+      tbody.querySelectorAll('.drag-over').forEach(r=>r.classList.remove('drag-over'));
+      if(targetRow && targetRow !== row){
+        targetRow.classList.add('drag-over');
+        _dnd.toRi = +targetRow.dataset.ri;
+      } else {
+        _dnd.toRi = _dnd.fromRi;
+      }
+    },{ passive: false });
+
+    function _touchEnd(e){
+      if(!_dnd || _dnd.type !== 'touch') return;
+      e.preventDefault();
+      if(_dnd.ghost){ _dnd.ghost.remove(); _dnd.ghost = null; }
+      row.classList.remove('dragging');
+      tbody.querySelectorAll('.drag-over').forEach(r=>r.classList.remove('drag-over'));
+      const fromRi = _dnd.fromRi, toRi = _dnd.toRi;
+      _dnd = null;
+      if(toRi !== fromRi) doReorderMateri(mi, fromRi, toRi);
+    }
+    handle.addEventListener('touchend',    _touchEnd, { passive: false });
+    handle.addEventListener('touchcancel', _touchEnd, { passive: false });
   });
 }
 
