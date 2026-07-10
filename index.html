@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 <style>
   :root{
     --navy:#0F172A; --navy-2:#1E293B; --blue:#4F46E5; --blue-light:#EEF2FF;
@@ -357,6 +358,13 @@
   .hots-c4{background:#DDEBFF; color:#1D4ED8;}
   .hots-c5{background:#FDE7C8; color:#9A5B00;}
   .hots-c6{background:#E3D9FB; color:#5B21B6;}
+  .hots-mudah{background:#DCFCE7; color:#0F7A45;}
+  .hots-sedang{background:#FEF3C7; color:#92400E;}
+  .hots-sukar{background:#FDE2E2; color:#B91C1C;}
+  .pg-opt{padding-left:16px; margin-bottom:3px;}
+  .kunci-pg-row{font-family:'JetBrains Mono',monospace; font-size:12px; margin-bottom:4px;}
+  .sig-block{width:100%; border-collapse:collapse; margin-top:22px;}
+  .sig-block td{width:50%; text-align:center; vertical-align:top; font-size:12.6px; padding:0 10px;}
   .soal-card{border:1.5px solid var(--line); border-radius:14px; padding:16px 18px; margin-bottom:14px; background:#FBFCFF;}
   .soal-card .soal-no{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--blue); margin-right:4px;}
   .soal-card .soal-q{font-weight:600; color:var(--navy-2); margin:6px 0 10px;}
@@ -412,15 +420,17 @@
   <a href="#card-identitas"><span class="k">ID</span> Identitas</a>
   <a href="#card-pekan"><span class="k">01–03</span> Pekan Efektif</a>
   <a href="#card-mapel"><span class="k">04–05</span> Mapel &amp; JP</a>
+  <a href="#card-cp"><span class="k">06</span> Capaian Pemb. (CP)</a>
   <a href="#card-konsistensi"><span class="k">✓</span> Konsistensi</a>
-  <a href="#card-prosem"><span class="k">06</span> Prog. Semester</a>
-  <a href="#card-prota"><span class="k">07</span> Prog. Tahunan</a>
-  <a href="#card-silabus"><span class="k">08</span> Silabus</a>
-  <a href="#atpSection"><span class="k">09</span> ATP &amp; TP</a>
-  <a href="#rppSection"><span class="k">10</span> RPP / Modul Ajar</a>
-  <a href="#lkpdSection"><span class="k">11</span> LKPD PBL</a>
-  <a href="#soalSection"><span class="k">12</span> Soal HOTS</a>
-  <a href="#asesmenSection"><span class="k">13</span> Analisis Asesmen</a>
+  <a href="#card-prosem"><span class="k">07</span> Prog. Semester</a>
+  <a href="#atpSection"><span class="k">08</span> ATP &amp; TP</a>
+  <a href="#card-prota"><span class="k">09</span> Prog. Tahunan</a>
+  <a href="#card-silabus"><span class="k">10</span> Silabus</a>
+  <a href="#rppSection"><span class="k">11</span> RPP / Modul Ajar</a>
+  <a href="#lkpdSection"><span class="k">12</span> LKPD PBL</a>
+  <a href="#soalSection"><span class="k">13</span> Soal HOTS</a>
+  <a href="#asesmenSection"><span class="k">14</span> Analisis Asesmen</a>
+  <a href="#soalSumatifSection"><span class="k">15</span> Soal STS/SAS</a>
 </nav>
 
 <div class="wrap">
@@ -440,20 +450,22 @@
         </summary>
         <div style="margin-top:14px; padding-left:2px;">
           <ol style="margin:0 0 10px 20px; padding:0; font-size:13px; line-height:1.85;">
-            <li><b>Identitas (ID) &amp; Pekan Efektif (01–03)</b> — isi profil sekolah dan jumlah pekan efektif per bulan.</li>
+            <li><b>Identitas (ID) &amp; Pekan Efektif (01–03)</b> — isi profil sekolah, kalender pendidikan, dan jumlah pekan efektif per bulan (RPE).</li>
             <li><b>Mata Pelajaran &amp; JP (04–05)</b> — tambahkan mata pelajaran yang diajar beserta jam pelajarannya.</li>
-            <li><b>Program Semester (06)</b> — <u>langkah paling penting</u>: masukkan setiap KD/materi beserta kolom <b>IPK</b>-nya (boleh berupa poin bernomor, mis. "1) ... 2) ...").
+            <li><b>Capaian Pembelajaran / CP (06)</b> — tuliskan CP tiap mapel (dari fase/elemen sesuai Kurikulum Merdeka) di sini <u>lebih dulu</u> sebagai acuan. CP ini otomatis muncul juga di kartu Silabus &amp; Modul Ajar di bawah.</li>
+            <li><b>Program Semester (07)</b> — <u>langkah paling penting</u>: turunkan CP menjadi KD/materi beserta kolom <b>IPK</b>-nya (boleh berupa poin bernomor, mis. "1) ... 2) ...").
               Kolom IPK inilah yang otomatis "dibaca ulang" oleh kartu ATP/TP, RPP, LKPD, dan Soal HOTS di bawah — semakin lengkap IPK diisi, semakin baik hasil otomatisnya.</li>
-            <li><b>Program Tahunan &amp; Silabus (07–08)</b> — terisi otomatis dari data di atas, tinggal dicek/dilengkapi.</li>
-            <li><b>ATP &amp; TP (09)</b> — pilih mapel, klik "Susun Otomatis" untuk mendapatkan Alur &amp; Tujuan Pembelajaran beserta indikator ketercapaian.</li>
-            <li><b>RPP / Modul Ajar (10)</b> — pilih mapel &amp; KD, pilih model pembelajaran (PBL/PjBL/Discovery), lalu semua bagian (tujuan, langkah, asesmen, refleksi guru) tersusun otomatis dan bisa diedit.</li>
-            <li><b>LKPD Berbasis PBL (11)</b> — pilih mapel &amp; KD yang sama, klik "Buat LKPD Otomatis" untuk lembar kerja siswa berisi kegiatan kelompok, tugas kreatif, dan refleksi diri.</li>
-            <li><b>Instrumen Soal HOTS (12)</b> — klik "Buat Otomatis" untuk mendapat 10 soal C4–C6 beserta kunci, pembahasan, dan rubrik — siap dipakai sebagai ulangan/tes.</li>
-            <li><b>Analisis Hasil Asesmen (13)</b> — setelah siswa mengerjakan soal di atas, masukkan skornya di sini (0–10 per soal), klik "Analisis Otomatis" untuk melihat pengelompokan siswa dan rekomendasi tindak lanjut.</li>
+            <li><b>ATP &amp; TP (08)</b> — pilih mapel, klik "Susun Otomatis" untuk merumuskan Tujuan Pembelajaran dari IPK di atas menjadi Alur Tujuan Pembelajaran, sebelum dituangkan ke Prota/Promes.</li>
+            <li><b>Program Tahunan &amp; Silabus (09–10)</b> — terisi otomatis dari ATP/TP dan Program Semester di atas, tinggal dicek/dilengkapi.</li>
+            <li><b>RPP / Modul Ajar (11)</b> — pilih mapel &amp; KD, pilih model pembelajaran (PBL/PjBL/Discovery), lalu semua bagian (tujuan, langkah, asesmen, refleksi guru) tersusun otomatis dan bisa diedit.</li>
+            <li><b>LKPD Berbasis PBL (12)</b> — pilih mapel &amp; KD yang sama, klik "Buat LKPD Otomatis" untuk lembar kerja siswa berisi kegiatan kelompok, tugas kreatif, dan refleksi diri.</li>
+            <li><b>Instrumen Soal HOTS (13)</b> — klik "Buat Otomatis" untuk mendapat 10 soal C4–C6 beserta kunci, pembahasan, dan rubrik — siap dipakai sebagai ulangan/tes.</li>
+            <li><b>Analisis Hasil Asesmen (14)</b> — setelah siswa mengerjakan soal di atas, masukkan skornya di sini (0–10 per soal), klik "Analisis Otomatis" untuk melihat pengelompokan siswa dan rekomendasi tindak lanjut.</li>
+            <li><b>Bank Soal STS/SAS (15)</b> — pilih mapel &amp; jenis asesmen (STS/SAS, Ganjil/Genap), klik "Buat Otomatis" untuk 35 soal Pilihan Ganda (A–E) + 5 soal Esai lengkap kisi-kisi &amp; kunci jawaban, siap dicetak atau diekspor ke Word (.docx).</li>
           </ol>
           <div class="badge-info" style="margin-top:4px;">
             <span>💡</span>
-            <div>Tidak perlu urut kaku — kamu bisa loncat ke kartu mana pun lewat menu di atas. Yang penting: <b>isi kolom IPK di Program Semester dulu</b>, karena hampir semua tombol "Buat Otomatis" mengambil isinya dari sana.</div>
+            <div>Tidak perlu urut kaku — kamu bisa loncat ke kartu mana pun lewat menu di atas. Yang penting: <b>isi CP (06) dan kolom IPK di Program Semester (07) dulu</b>, karena hampir semua tombol "Buat Otomatis" mengambil isinya dari sana.</div>
           </div>
         </div>
       </details>
@@ -510,6 +522,29 @@
       </div>
     </div>
 
+    <!-- CAPAIAN PEMBELAJARAN (CP) -->
+    <div class="card" id="card-cp">
+      <div class="step-head">
+        <div class="step-num">06</div>
+        <div>
+          <h2>Capaian Pembelajaran (CP)</h2>
+          <p>Tuliskan CP tiap mata pelajaran <b>di sini dulu</b>, sebelum diturunkan menjadi KD/IPK di Program Semester. Isian ini otomatis tersambung ke kartu Silabus dan Modul Ajar di bawah — tidak perlu diketik ulang.</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:14px;">
+        <div>
+          <label>Mata Pelajaran</label>
+          <select id="cpMapelSelect" style="width:100%; padding:9px 11px;"></select>
+        </div>
+        <div></div>
+      </div>
+
+      <label>Capaian Pembelajaran</label>
+      <textarea id="cpCapaianInput" rows="5" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line); font-family:'Inter',sans-serif; font-size:13px; resize:vertical;" placeholder="Tuliskan capaian pembelajaran untuk fase/mapel ini, lalu turunkan menjadi KD/IPK di kartu Program Semester (07)..."></textarea>
+      <p class="field-help" style="margin-top:6px;">Setelah CP diisi, lanjutkan ke kartu <b>Program Semester (07)</b> untuk menurunkannya menjadi KD/IPK per minggu.</p>
+    </div>
+
     <!-- RINGKASAN KONSISTENSI JAM -->
     <div class="card" id="card-konsistensi">
       <div class="step-head">
@@ -525,7 +560,7 @@
     <!-- PROGRAM SEMESTER -->
     <div class="card" id="card-prosem">
       <div class="step-head">
-        <div class="step-num">06</div>
+        <div class="step-num">07</div>
         <div>
           <h2>Program Semester (Distribusi KD/IPK per Minggu)</h2>
           <p>Susun daftar KD/IPK dan Ulangan Harian secara berurutan — aplikasi otomatis menyebarkannya ke minggu-minggu efektif (melompati minggu yang terpakai MPLS/STS/PAS/libur).</p>
@@ -596,10 +631,46 @@
       </div>
     </div>
 
+    <!-- ATP & TP -->
+    <div class="card" id="atpSection">
+      <div class="step-head">
+        <div class="step-num">08</div>
+        <div>
+          <h2>Alur Tujuan Pembelajaran (ATP) &amp; Tujuan Pembelajaran (TP)</h2>
+          <p>Disusun otomatis dari daftar KD/IPK pada Program Semester, mengikuti urutan yang sudah kamu tetapkan di sana (dari kompetensi sederhana → kompleks), dilengkapi Indikator Ketercapaian Tujuan Pembelajaran (IKTP) per baris. Hasilnya menjadi acuan Program Tahunan &amp; Promes di bawah.</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:14px;">
+        <div>
+          <label>Mata Pelajaran</label>
+          <select id="atpMapelSelect" style="width:100%; padding:9px 11px;" onchange="atpRefresh()"></select>
+        </div>
+        <div style="display:flex; align-items:flex-end;">
+          <button class="btn btn-primary" style="width:100%;" onclick="atpRefresh()">🪄 Susun ATP &amp; TP Otomatis</button>
+        </div>
+      </div>
+      <div class="field-help" style="margin-bottom:10px;">Pastikan kolom <b>IPK</b> mapel ini sudah diisi di kartu Program Semester (07) — indikator ketercapaian dibuat otomatis dari sana.</div>
+
+      <div id="atpEmptyInfo" class="field-help" style="margin-bottom:10px;"></div>
+      <div style="overflow-x:auto;">
+        <div id="atpTableWrap"></div>
+      </div>
+
+      <div class="badge-info" style="margin-top:16px;">
+        <span>ℹ️</span>
+        <div><b>Cara urutan disusun:</b> ATP mengikuti nomor urut KD/IPK apa adanya di Program Semester (kartu 07). Jika ingin mengubah urutan logisnya (mis. dari kompetensi prasyarat ke kompetensi lanjutan), atur ulang urutan baris KD/IPK di kartu Program Semester, lalu klik "Susun ATP &amp; TP Otomatis" lagi di sini.</div>
+      </div>
+
+      <div class="btn-row no-print">
+        <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak ATP &amp; TP</button>
+      </div>
+    </div>
+
     <!-- PROGRAM TAHUNAN -->
     <div class="card" id="card-prota">
       <div class="step-head">
-        <div class="step-num">07</div>
+        <div class="step-num">09</div>
         <div>
           <h2>Program Tahunan</h2>
           <p>Otomatis dibuat dari daftar KD/IPK yang sama dengan Program Semester di atas — tinggal tambahkan Cadangan dan label ujian.</p>
@@ -634,7 +705,7 @@
     <!-- SILABUS -->
     <div class="card" id="card-silabus">
       <div class="step-head">
-        <div class="step-num">08</div>
+        <div class="step-num">10</div>
         <div>
           <h2>Silabus</h2>
           <p>Kop sekolah, mata pelajaran, dan alokasi waktu otomatis dari data di atas. Kamu hanya perlu isi Capaian Pembelajaran, Elemen, dan detail pedagogis tiap KD.</p>
@@ -654,8 +725,9 @@
 
       <div id="silabusValidasi"></div>
 
-      <label>Capaian Pembelajaran</label>
-      <textarea id="silabusCapaian" rows="4" style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line); font-family:'Inter',sans-serif; font-size:13px; resize:vertical;" placeholder="Tuliskan capaian pembelajaran untuk fase/semester ini..."></textarea>
+      <label>Capaian Pembelajaran <span style="font-weight:400; color:var(--muted);">(diisi di kartu 06, tampil otomatis di sini)</span></label>
+      <textarea id="silabusCapaian" rows="4" readonly style="width:100%; padding:10px 12px; border-radius:10px; border:1.5px solid var(--line); background:#F0F4FE; font-family:'Inter',sans-serif; font-size:13px; resize:vertical; cursor:default;" placeholder="Belum diisi — lengkapi di kartu Capaian Pembelajaran (06) di atas."></textarea>
+      <p class="field-help" style="margin-top:4px;">Ingin mengubah? Buka kartu <a href="#card-cp">Capaian Pembelajaran (06)</a>.</p>
 
       <div class="divider"></div>
       <label>Elemen (Capaian Berdasarkan Elemen)</label>
@@ -677,46 +749,9 @@
       </div>
     </div>
 
-    <!-- RPP OTOMATIS -->
-    <!-- ATP & TP -->
-    <div class="card" id="atpSection">
-      <div class="step-head">
-        <div class="step-num">09</div>
-        <div>
-          <h2>Alur Tujuan Pembelajaran (ATP) &amp; Tujuan Pembelajaran (TP)</h2>
-          <p>Disusun otomatis dari daftar KD/IPK pada Program Semester, mengikuti urutan yang sudah kamu tetapkan di sana (dari kompetensi sederhana → kompleks), dilengkapi Indikator Ketercapaian Tujuan Pembelajaran (IKTP) per baris.</p>
-        </div>
-      </div>
-
-      <div class="grid-2" style="margin-bottom:14px;">
-        <div>
-          <label>Mata Pelajaran</label>
-          <select id="atpMapelSelect" style="width:100%; padding:9px 11px;" onchange="atpRefresh()"></select>
-        </div>
-        <div style="display:flex; align-items:flex-end;">
-          <button class="btn btn-primary" style="width:100%;" onclick="atpRefresh()">🪄 Susun ATP &amp; TP Otomatis</button>
-        </div>
-      </div>
-      <div class="field-help" style="margin-bottom:10px;">Pastikan kolom <b>IPK</b> mapel ini sudah diisi di kartu Program Semester (06) — indikator ketercapaian dibuat otomatis dari sana.</div>
-
-      <div id="atpEmptyInfo" class="field-help" style="margin-bottom:10px;"></div>
-      <div style="overflow-x:auto;">
-        <div id="atpTableWrap"></div>
-      </div>
-
-      <div class="badge-info" style="margin-top:16px;">
-        <span>ℹ️</span>
-        <div><b>Cara urutan disusun:</b> ATP mengikuti nomor urut KD/IPK apa adanya di Program Semester (kartu 06). Jika ingin mengubah urutan logisnya (mis. dari kompetensi prasyarat ke kompetensi lanjutan), atur ulang urutan baris KD/IPK di kartu Program Semester, lalu klik "Susun ATP &amp; TP Otomatis" lagi di sini.</div>
-      </div>
-
-      <div class="btn-row no-print">
-        <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak ATP &amp; TP</button>
-      </div>
-    </div>
-
     <div class="card" id="rppSection">
       <div class="step-head">
-        <div class="step-num">10</div>
+        <div class="step-num">11</div>
         <div>
           <h2>RPP / Modul Ajar Otomatis</h2>
           <p>Pilih mata pelajaran &amp; KD dari data di atas (atau klik "📝 Konversi ke RPP" pada KD di Silabus) — Tujuan, Kegiatan, Asesmen, dan Media otomatis tersusun dan saling terhubung, siap diedit dan diekspor.</p>
@@ -823,7 +858,7 @@
     <!-- LKPD BERBASIS PBL -->
     <div class="card" id="lkpdSection">
       <div class="step-head">
-        <div class="step-num">11</div>
+        <div class="step-num">12</div>
         <div>
           <h2>LKPD Berbasis Problem Based Learning</h2>
           <p>Lembar Kerja Peserta Didik yang disusun otomatis untuk mendorong kolaborasi kelompok, kreativitas produk belajar, dan refleksi diri peserta didik, berdasarkan KD/IPK yang dipilih.</p>
@@ -868,7 +903,7 @@
     <!-- INSTRUMEN SOAL HOTS -->
     <div class="card" id="soalSection">
       <div class="step-head">
-        <div class="step-num">12</div>
+        <div class="step-num">13</div>
         <div>
           <h2>Instrumen Soal HOTS (C4–C6)</h2>
           <p>Membuat 10 soal Higher Order Thinking Skills level C4 (Menganalisis) – C6 (Mencipta) secara otomatis dari IPK/KD terpilih, lengkap dengan kisi-kisi, kunci jawaban, pembahasan, dan rubrik penilaian.</p>
@@ -899,7 +934,7 @@
     <!-- ANALISIS HASIL ASESMEN -->
     <div class="card" id="asesmenSection">
       <div class="step-head">
-        <div class="step-num">13</div>
+        <div class="step-num">14</div>
         <div>
           <h2>Hasil Analisis Asesmen</h2>
           <p>Masukkan skor tiap peserta didik untuk 10 nomor soal (skala 0–10/soal, sesuai rubrik Instrumen Soal HOTS), lalu analisis otomatis untuk mengelompokkan profil belajar, item soal, dan rekomendasi tindak lanjut.</p>
@@ -918,6 +953,57 @@
       </div>
 
       <div id="asesmenHasil"></div>
+    </div>
+
+    <!-- BANK SOAL ASESMEN SUMATIF (STS & SAS) -->
+    <div class="card" id="soalSumatifSection">
+      <div class="step-head">
+        <div class="step-num">15</div>
+        <div>
+          <h2>Bank Soal Asesmen Sumatif (STS &amp; SAS)</h2>
+          <p>Membuat naskah soal 35 Pilihan Ganda (A–E) + 5 Esai secara otomatis dari Capaian Pembelajaran &amp; KD/IPK tiap mapel — lengkap kop naskah, petunjuk umum, kisi-kisi, dan kunci jawaban — siap dicetak atau diekspor ke Word (.docx).</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:14px;">
+        <div>
+          <label>Mata Pelajaran</label>
+          <select id="ssMapelSelect" style="width:100%; padding:9px 11px;" onchange="ssMapelChanged()"></select>
+        </div>
+        <div>
+          <label>Jenis Asesmen</label>
+          <select id="ssJenisSelect" style="width:100%; padding:9px 11px;" onchange="ssJenisChanged()">
+            <option value="sts-ganjil">Sumatif Tengah Semester (STS) — Ganjil</option>
+            <option value="sas-ganjil">Sumatif Akhir Semester (SAS) — Ganjil</option>
+            <option value="sts-genap">Sumatif Tengah Semester (STS) — Genap</option>
+            <option value="sas-genap">Sumatif Akhir Semester (SAS) — Genap</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:14px;">
+        <div><label>Nama Guru Mapel</label><input type="text" id="ssGuru" placeholder="mis. Wahyu Prihanto, S.Kom." style="width:100%;"></div>
+        <div><label>NIP Guru</label><input type="text" id="ssNipGuru" placeholder="mis. -" style="width:100%;"></div>
+        <div><label>Kepala Sekolah</label><input type="text" id="ssKepsek" placeholder="mis. Drs. Nama Kepsek" style="width:100%;"></div>
+        <div><label>NIP Kepala Sekolah</label><input type="text" id="ssNipKepsek" placeholder="mis. -" style="width:100%;"></div>
+        <div><label>Tempat</label><input type="text" id="ssTempat" placeholder="mis. Tumpang" style="width:100%;"></div>
+        <div><label>Hari / Tanggal &amp; Waktu</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="ssTanggal" placeholder="mis. 10 Juli 2026" style="width:60%;">
+            <input type="text" id="ssAlokasi" placeholder="mis. 90 menit" style="width:40%;">
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row" style="margin-bottom:8px;">
+        <button class="btn btn-primary" onclick="ssGenerate()">🪄 Buat Otomatis (35 PG + 5 Esai)</button>
+        <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak / PDF</button>
+        <button class="btn btn-export" onclick="ssExportDocx()">📄 Export ke Word (.docx)</button>
+      </div>
+      <div class="field-help" style="margin-bottom:16px;">Soal dibuat dari Capaian Pembelajaran &amp; kolom IPK/Ket. tiap KD (kartu Program Semester — poin 07). Untuk STS, soal diambil dari separuh awal KD; untuk SAS, dari seluruh KD semester berjalan. Setelah muncul, klik langsung di teksnya untuk mengedit sebelum mencetak/mengekspor.</div>
+
+      <div id="ssEmptyInfo" class="field-help" style="margin-bottom:10px;"></div>
+      <div id="ssOutput" contenteditable="true" spellcheck="false"></div>
     </div>
 
     <div class="btn-row no-print">
@@ -1113,7 +1199,7 @@ function renderIdentitas(){
   wrap.querySelectorAll('input').forEach(inp=>{
     inp.addEventListener("input", e=>{
       data.identitas[e.target.dataset.key] = e.target.value;
-      save(); renderProta(); renderSilabus();
+      save(); renderProta(); renderSilabus(); renderCP();
     });
   });
 }
@@ -1250,7 +1336,7 @@ function renderMapel(){
       data.mapel[mi][f] = f==="nama" ? e.target.value : (parseFloat(e.target.value)||0);
       // JP/Minggu & JP/Pertemuan memengaruhi RPE efektif yang dipakai Prosem/Prota/Silabus,
       // jadi ketiganya wajib direfresh supaya tidak menampilkan jam basi (stale).
-      save(); renderSummary(); renderProsem(); renderProta(); renderSilabus();
+      save(); renderSummary(); renderProsem(); renderProta(); renderSilabus(); renderCP();
     });
   });
   body.querySelectorAll('select').forEach(sel=>{
@@ -1258,7 +1344,7 @@ function renderMapel(){
       const mi=+e.target.dataset.mi;
       data.mapel[mi].semester = e.target.value;
       // Ganti semester mengubah daftar mapel yang layak muncul di Prosem/Prota/Silabus.
-      save(); renderSummary(); renderProsem(); renderProta(); renderSilabus();
+      save(); renderSummary(); renderProsem(); renderProta(); renderSilabus(); renderCP();
     });
   });
   body.querySelectorAll('button[data-action="del"]').forEach(btn=>{
@@ -1272,13 +1358,13 @@ function renderMapel(){
         if(data.prosem.selected === mi) data.prosem.selected = 0;
         else if(data.prosem.selected > mi) data.prosem.selected -= 1;
       }
-      save(); renderMapel(); renderSummary(); renderProsem(); renderProta(); renderSilabus();
+      save(); renderMapel(); renderSummary(); renderProsem(); renderProta(); renderSilabus(); renderCP();
     });
   });
 }
 function addMapel(){
   data.mapel.push({ nama:"Mata pelajaran baru", jpMinggu:2, jpPertemuan:1, semester: data.semesters[0]?.id || "ganjil", cadangan:0, ujianLabel:"", capaianPembelajaran:"", elemen:[], materi: [] });
-  save(); renderMapel(); renderSummary(); renderProsem(); renderProta(); renderSilabus();
+  save(); renderMapel(); renderSummary(); renderProsem(); renderProta(); renderSilabus(); renderCP();
 }
 
 /* ---------- SUMMARY ---------- */
@@ -1328,7 +1414,7 @@ function renderSummary(){
   renderConsistencyOverview();
 }
 
-function renderAll(){ renderIdentitas(); renderSemesters(); renderMapel(); renderSummary(); renderConsistencyOverview(); renderProsem(); renderProta(); renderSilabus(); if(typeof rppRefreshOptionsOnly === "function") rppRefreshOptionsOnly(); if(typeof atpRefreshMapelOptions === "function") atpRefreshMapelOptions(); if(typeof lkpdRefreshOptionsOnly === "function") lkpdRefreshOptionsOnly(); if(typeof soalRefreshOptionsOnly === "function") soalRefreshOptionsOnly(); }
+function renderAll(){ renderIdentitas(); renderSemesters(); renderMapel(); renderSummary(); renderConsistencyOverview(); renderProsem(); renderProta(); renderSilabus(); renderCP(); if(typeof rppRefreshOptionsOnly === "function") rppRefreshOptionsOnly(); if(typeof atpRefreshMapelOptions === "function") atpRefreshMapelOptions(); if(typeof lkpdRefreshOptionsOnly === "function") lkpdRefreshOptionsOnly(); if(typeof soalRefreshOptionsOnly === "function") soalRefreshOptionsOnly(); if(typeof ssRefreshOptionsOnly === "function") ssRefreshOptionsOnly(); }
 
 /* ---------- IMPORT/EXPORT JSON ---------- */
 function exportJSON(){
@@ -1726,7 +1812,7 @@ function autoAturJamOtomatis(mi){
   renderSummary();
   renderProsem();
   renderProta();
-  renderSilabus();
+  renderSilabus(); renderCP();
   refreshAllValidasi();
 }
 
@@ -1857,7 +1943,7 @@ function setSelectedMapel(i){
   save();
   renderProsem();
   renderProta();
-  renderSilabus();
+  renderSilabus(); renderCP();
 }
 
 /* ---------- Editor: pilih mapel + daftar KD/IPK ---------- */
@@ -2595,6 +2681,35 @@ async function exportProtaExcel(){
   await downloadWorkbook(wb, `Program Tahunan - ${mapel.nama}.xlsx`);
 }
 
+/* ===================== CAPAIAN PEMBELAJARAN (CP) ===================== */
+
+function renderCP(){
+  const select = document.getElementById("cpMapelSelect");
+  if(!select) return;
+  const list = eligibleMapelList();
+  if(list.length === 0){
+    select.innerHTML = `<option>Belum ada mata pelajaran</option>`;
+    document.getElementById("cpCapaianInput").value = "";
+    return;
+  }
+  const curIdx = currentProsemMapelIndex();
+  select.innerHTML = list.map(x=>{
+    const sem = data.semesters.find(s=>s.id===x.m.semester);
+    return `<option value="${x.i}" ${x.i===curIdx?"selected":""}>${escapeHtml(x.m.nama)} — Semester ${sem?sem.nama:""}</option>`;
+  }).join("");
+  select.onchange = e=>{ setSelectedMapel(parseInt(e.target.value)); };
+
+  const mapel = data.mapel[curIdx];
+  const cpInput = document.getElementById("cpCapaianInput");
+  cpInput.value = mapel ? (mapel.capaianPembelajaran || "") : "";
+  cpInput.oninput = e=>{
+    if(curIdx < 0) return;
+    data.mapel[curIdx].capaianPembelajaran = e.target.value;
+    save();
+    renderSilabusPreview(curIdx);
+  };
+}
+
 /* ===================== SILABUS ===================== */
 
 function renderSilabus(){
@@ -2613,7 +2728,7 @@ function renderSilabus(){
     const sem = data.semesters.find(s=>s.id===x.m.semester);
     return `<option value="${x.i}" ${x.i===curIdx?"selected":""}>${escapeHtml(x.m.nama)} — Semester ${sem?sem.nama:""}</option>`;
   }).join("");
-  select.onchange = e=>{ setSelectedMapel(parseInt(e.target.value)); renderSilabus(); };
+  select.onchange = e=>{ setSelectedMapel(parseInt(e.target.value)); renderSilabus(); renderCP(); };
 
   const mapel = data.mapel[curIdx];
   const totals = protaTotals(mapel);
@@ -2622,7 +2737,6 @@ function renderSilabus(){
 
   const capaianEl = document.getElementById("silabusCapaian");
   capaianEl.value = mapel.capaianPembelajaran || "";
-  capaianEl.oninput = e=>{ data.mapel[curIdx].capaianPembelajaran = e.target.value; save(); renderSilabusPreview(curIdx); };
 
   renderElemenList(curIdx);
   renderSilabusKdList(curIdx);
@@ -4169,6 +4283,403 @@ function asesmenAnalisis(){
   `;
 }
 
+/* ================= BANK SOAL ASESMEN SUMATIF (STS & SAS) ================= */
+const SS_META_KEY = "bank-soal-sumatif-meta-v1";
+let ssMapelIdx = 0;
+let ssMeta = { guru:"", nipGuru:"", kepsek:"", nipKepsek:"", tempat:"", tanggal:"", alokasi:"90 menit" };
+let ssLastGenerated = null;
+
+const SS_JENIS_LABELS = {
+  "sts-ganjil": "SUMATIF TENGAH SEMESTER (STS) — GANJIL",
+  "sas-ganjil": "SUMATIF AKHIR SEMESTER (SAS) — GANJIL",
+  "sts-genap": "SUMATIF TENGAH SEMESTER (STS) — GENAP",
+  "sas-genap": "SUMATIF AKHIR SEMESTER (SAS) — GENAP"
+};
+const SS_LEVELS = {
+  mudah: { label:"Mudah (C1–C2)", templates: [
+    p => `Pengertian yang paling tepat mengenai ${p} adalah ...`,
+    p => `Istilah yang tepat untuk menyebut ${p} adalah ...`,
+    p => `Manakah pernyataan berikut yang paling sesuai dengan ${p}?`,
+    p => `Perhatikan pernyataan berikut! Pernyataan yang paling tepat menjelaskan ${p} adalah ...`
+  ]},
+  sedang: { label:"Sedang (C3)", templates: [
+    p => `Dalam penerapannya, ${p} paling tepat digunakan untuk ...`,
+    p => `Jika seorang peserta didik diminta menerapkan ${p} dalam sebuah tugas, langkah yang paling tepat dilakukan adalah ...`,
+    p => `Contoh penerapan ${p} yang paling sesuai dalam kehidupan sehari-hari/dunia kerja adalah ...`
+  ]},
+  sukar: { label:"Sukar (C4)", templates: [
+    p => `Perhatikan sebuah kasus terkait ${p}! Faktor yang paling memengaruhi keberhasilan penerapannya pada kasus tersebut adalah ...`,
+    p => `Apabila terjadi kendala dalam penerapan ${p}, penyebab yang paling mungkin adalah ...`
+  ]}
+};
+const SS_PG_PATTERN = ["mudah","sedang","mudah","sedang","sukar"]; // 7x = 35 soal (14 mudah, 14 sedang, 7 sukar)
+const SS_ESAI_LEVELS = {
+  C4: { label:"C4 – Menganalisis", verbs:["Analisislah","Bandingkan","Uraikan hubungan antara","Identifikasi penyebab dari"] },
+  C5: { label:"C5 – Mengevaluasi", verbs:["Evaluasilah","Berikan penilaianmu terhadap","Kritisi"] },
+  C6: { label:"C6 – Mencipta", verbs:["Rancanglah","Susunlah sebuah solusi untuk","Kembangkan sebuah gagasan untuk mengatasi"] }
+};
+const SS_ESAI_PATTERN = ["C4","C5","C6","C4","C6"];
+
+function ssLoadMeta(){
+  try{ const raw = localStorage.getItem(SS_META_KEY); if(raw) Object.assign(ssMeta, JSON.parse(raw)); }catch(e){}
+}
+function ssSaveMeta(){ localStorage.setItem(SS_META_KEY, JSON.stringify(ssMeta)); }
+function ssFillMetaInputs(){
+  const map = { ssGuru:"guru", ssNipGuru:"nipGuru", ssKepsek:"kepsek", ssNipKepsek:"nipKepsek", ssTempat:"tempat", ssTanggal:"tanggal", ssAlokasi:"alokasi" };
+  Object.entries(map).forEach(([elId,key])=>{
+    const el = document.getElementById(elId);
+    if(el){
+      el.value = ssMeta[key] || (key==="alokasi" ? "90 menit" : "");
+      el.addEventListener("input", ()=>{ ssMeta[key] = el.value; ssSaveMeta(); });
+    }
+  });
+}
+function ssShuffle(arr){
+  for(let i=arr.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+function ssLower(s){ s=(s||"").trim().replace(/[.]+$/,""); return s ? s.charAt(0).toLowerCase()+s.slice(1) : s; }
+function ssCap(s){ s=(s||"").trim(); return s ? s.charAt(0).toUpperCase()+s.slice(1).replace(/[.]*$/,".") : s; }
+function ssSemesterOf(jenis){ return jenis.endsWith("genap") ? "genap" : "ganjil"; }
+function ssIsTengah(jenis){ return jenis.startsWith("sts"); }
+
+function ssRefreshOptionsOnly(){
+  const sel = document.getElementById("ssMapelSelect");
+  if(!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = "";
+  data.mapel.forEach((m,i)=>{
+    const opt = document.createElement("option");
+    opt.value = i; opt.textContent = m.nama || `Mapel ${i+1}`;
+    sel.appendChild(opt);
+  });
+  if(!data.mapel.length){ sel.innerHTML = '<option value="">(Belum ada mapel)</option>'; }
+  else if(prev !== "" && data.mapel[+prev]){ sel.value = prev; ssMapelIdx = +prev; }
+  else { sel.value = "0"; ssMapelIdx = 0; }
+}
+function ssMapelChanged(){ ssMapelIdx = +document.getElementById("ssMapelSelect").value; }
+function ssJenisChanged(){ /* dibaca ulang saat ssGenerate() dipanggil */ }
+
+function ssBuildPointPool(mapel, jenis){
+  const kdRows = (mapel.materi||[]).filter(r=>r.jenis==="kd");
+  let rows = kdRows;
+  if(ssIsTengah(jenis) && kdRows.length > 1){
+    rows = kdRows.slice(0, Math.ceil(kdRows.length/2));
+  }
+  const pool = [];
+  rows.forEach(row=>{
+    let pts = extractPoints(row.ipk||"");
+    if(!pts.length) pts = extractPoints(row.ket||"");
+    if(!pts.length) pts = [row.deskripsi || "materi ini"];
+    pts.forEach(p=> pool.push({ kode: row.kode||"", materi: row.deskripsi||"materi ini", point: p }));
+  });
+  return pool;
+}
+
+function ssGeneratePG(pool){
+  if(!pool.length) return [];
+  const letters = ["A","B","C","D","E"];
+  const order = []; for(let i=0;i<35;i++) order.push(SS_PG_PATTERN[i % SS_PG_PATTERN.length]);
+  return order.map((lvl,i)=>{
+    const entryIdx = i % pool.length;
+    const entry = pool[entryIdx];
+    const otherIdxs = ssShuffle(pool.map((_,idx)=>idx).filter(idx=>idx!==entryIdx));
+    const distractors = otherIdxs.slice(0,4).map(idx=>pool[idx].point);
+    while(distractors.length < 4) distractors.push("Pilihan pengecoh — sesuaikan dengan materi lain yang relevan");
+    const tmpl = SS_LEVELS[lvl].templates[i % SS_LEVELS[lvl].templates.length];
+    const stem = tmpl(ssLower(entry.point));
+    let opts = [ { text: ssCap(entry.point), correct:true }, ...distractors.map(d=>({ text: ssCap(d), correct:false })) ];
+    ssShuffle(opts);
+    opts = opts.map((o,oi)=>({ letter: letters[oi], text:o.text, correct:o.correct }));
+    return {
+      no: i+1, level: lvl, levelLabel: SS_LEVELS[lvl].label, kode: entry.kode,
+      indikator: entry.point, stem, options: opts, correctLetter: opts.find(o=>o.correct).letter
+    };
+  });
+}
+
+function ssGenerateEsai(pool, offset){
+  if(!pool.length) return [];
+  return SS_ESAI_PATTERN.map((lvl,i)=>{
+    const entry = pool[(offset+i) % pool.length];
+    const materi = entry.materi || "materi ini";
+    const pointLower = ssLower(entry.point);
+    const level = SS_ESAI_LEVELS[lvl];
+    const verb = level.verbs[i % level.verbs.length];
+    const stem = `${verb} ${pointLower} dalam konteks ${materi}, kaitkan dengan sebuah contoh/kasus nyata.`;
+    let kunci;
+    if(lvl === "C4") kunci = `Jawaban memuat: (1) identifikasi unsur/bagian dari ${pointLower}; (2) keterkaitan antarunsur; (3) contoh nyata yang relevan.`;
+    else if(lvl === "C5") kunci = `Jawaban memuat: (1) kriteria penilaian yang digunakan; (2) keputusan yang diambil terhadap ${pointLower}; (3) alasan logis pendukung.`;
+    else kunci = `Jawaban memuat: (1) gagasan/solusi baru terkait ${pointLower}; (2) langkah penerapan yang realistis; (3) alasan gagasan tersebut efektif/relevan.`;
+    const rubrik = [
+      { skor:20, kriteria:"Jawaban lengkap, tepat, dan analisis/evaluasi/kreasi mendalam disertai contoh relevan." },
+      { skor:14, kriteria:"Jawaban cukup lengkap dan tepat, namun analisis/evaluasi/kreasi kurang mendalam." },
+      { skor:8, kriteria:"Jawaban sebagian benar, konsep dasar dipahami namun analisis dangkal." },
+      { skor:2, kriteria:"Jawaban tidak relevan atau menunjukkan kesalahpahaman konsep." }
+    ];
+    return { no: 35+i+1, level:lvl, levelLabel:level.label, kode:entry.kode, indikator: entry.point, stem, kunci, rubrik };
+  });
+}
+
+function ssGenerate(){
+  const mapel = data.mapel[ssMapelIdx];
+  const info = document.getElementById("ssEmptyInfo");
+  const out = document.getElementById("ssOutput");
+  if(!mapel){ if(info) info.textContent = "Pilih Mata Pelajaran terlebih dahulu."; if(out) out.innerHTML=""; return; }
+  const jenis = document.getElementById("ssJenisSelect").value;
+  const pool = ssBuildPointPool(mapel, jenis);
+  if(!pool.length){
+    if(info) info.textContent = 'Belum ada KD/IPK untuk mapel ini. Lengkapi dulu di kartu "Program Semester" (kolom IPK/Ket.).';
+    if(out) out.innerHTML = ""; ssLastGenerated = null; return;
+  }
+  if(info){
+    info.textContent = "";
+    const semExpected = ssSemesterOf(jenis);
+    if(mapel.semester && mapel.semester !== semExpected){
+      info.textContent = `⚠️ Perhatian: mapel "${mapel.nama}" terdaftar pada semester ${mapel.semester.toUpperCase()}, sedangkan jenis asesmen yang dipilih untuk semester ${semExpected.toUpperCase()}. Soal tetap dibuat dari data yang ada — sesuaikan bila perlu.`;
+    }
+  }
+  const pg = ssGeneratePG(pool);
+  const esai = ssGenerateEsai(pool, Math.floor(pool.length/2));
+  ssLastGenerated = { mapelNama: mapel.nama, jenis, pg, esai };
+  ssRenderOutput();
+}
+
+function ssRenderOutput(){
+  const out = document.getElementById("ssOutput");
+  if(!ssLastGenerated){ if(out) out.innerHTML=""; return; }
+  const { mapelNama, jenis, pg, esai } = ssLastGenerated;
+  const id = data.identitas || {};
+
+  const kisiRows = [
+    ...pg.map(q=>`<tr><td class="center">${q.no}</td><td>${escapeHtml(q.indikator)}</td><td class="center"><span class="hots-badge hots-${q.level}">${escapeHtml(q.levelLabel)}</span></td><td class="center">PG</td></tr>`),
+    ...esai.map(q=>`<tr><td class="center">${q.no}</td><td>${escapeHtml(q.indikator)}</td><td class="center"><span class="hots-badge hots-${q.level.toLowerCase()}">${escapeHtml(q.levelLabel)}</span></td><td class="center">Esai</td></tr>`)
+  ].join("");
+
+  const petunjukList = [
+    "Tulis nama, kelas, dan mata pelajaran pada lembar jawaban yang disediakan.",
+    "Bacalah setiap soal dengan teliti sebelum menjawab.",
+    "Pilihlah salah satu jawaban yang paling tepat pada soal pilihan ganda dengan menyilang huruf A, B, C, D, atau E.",
+    "Kerjakan soal uraian secara singkat, jelas, dan sistematis.",
+    "Periksa kembali jawaban sebelum dikumpulkan kepada pengawas."
+  ];
+
+  const pgHtml = pg.map(q=>`
+    <div class="soal-card">
+      <div class="soal-q">${q.no}. ${escapeHtml(q.stem)}</div>
+      ${q.options.map(o=>`<div class="pg-opt">${o.letter}. ${escapeHtml(o.text)}</div>`).join("")}
+    </div>`).join("");
+
+  const esaiHtml = esai.map(q=>`
+    <div class="soal-card">
+      <div class="soal-q">${q.no}. ${escapeHtml(q.stem)}</div>
+    </div>`).join("");
+
+  const kunciPgRows = [];
+  for(let i=0;i<pg.length;i+=5) kunciPgRows.push(pg.slice(i,i+5));
+  const kunciPgHtml = kunciPgRows.map(group=>`<div class="kunci-pg-row">${group.map(q=>`<b>${q.no}.</b> ${q.correctLetter}`).join("&nbsp;&nbsp;&nbsp;&nbsp;")}</div>`).join("");
+
+  const kunciEsaiHtml = esai.map(q=>`
+    <div class="soal-card">
+      <div><span class="soal-no">Soal ${q.no}</span><span class="hots-badge hots-${q.level.toLowerCase()}">${escapeHtml(q.levelLabel)}</span></div>
+      <div class="soal-block"><div class="lbl">🔑 Kunci Jawaban</div><div>${escapeHtml(q.kunci)}</div></div>
+      <div class="soal-block"><div class="lbl">📏 Rubrik Penilaian</div>
+        <table class="rubrik-table"><thead><tr><th style="width:15%;">Skor</th><th>Kriteria</th></tr></thead><tbody>
+          ${q.rubrik.map(r=>`<tr><td class="skor">${r.skor}</td><td>${escapeHtml(r.kriteria)}</td></tr>`).join("")}
+        </tbody></table>
+      </div>
+    </div>`).join("");
+
+  out.innerHTML = `<div class="doc">
+    <div class="kop">
+      <div class="sekolah">${escapeHtml(id.sekolah||"(Nama Sekolah)")}</div>
+      <div class="kecil">${escapeHtml(id.alamat||"")}</div>
+    </div>
+    <h2 class="doc-title">NASKAH SOAL ${escapeHtml(SS_JENIS_LABELS[jenis]||"")}<span class="tag-model">${pg.length} PG + ${esai.length} Esai</span></h2>
+    <table class="identitas">
+      <tr><td class="label">Mata Pelajaran</td><td class="titik">:</td><td>${escapeHtml(mapelNama)}</td>
+          <td class="label">Hari / Tanggal</td><td class="titik">:</td><td>${escapeHtml(ssMeta.tanggal||"..............................")}</td></tr>
+      <tr><td class="label">Kelas</td><td class="titik">:</td><td>${escapeHtml(id.kelas||"")}</td>
+          <td class="label">Waktu</td><td class="titik">:</td><td>${escapeHtml(ssMeta.alokasi||"90 menit")}</td></tr>
+      <tr><td class="label">Tahun Pelajaran</td><td class="titik">:</td><td>${escapeHtml(id.tahunPelajaran||"")}</td>
+          <td class="label">Kurikulum</td><td class="titik">:</td><td>Merdeka</td></tr>
+    </table>
+    <div class="sec-title">Petunjuk Umum</div>
+    <ol>${petunjukList.map(p=>`<li>${p}</li>`).join("")}</ol>
+    <div class="sec-title">A. Pilihan Ganda</div>
+    ${pgHtml}
+    <div class="sec-title">B. Uraian / Esai</div>
+    ${esaiHtml}
+    <table class="sig-block"><tr>
+      <td>Mengetahui,<br>Kepala Sekolah<br><br><br><br><b>${escapeHtml(ssMeta.kepsek||"(...........................)")}</b><br>NIP. ${escapeHtml(ssMeta.nipKepsek||"-")}</td>
+      <td>${escapeHtml(ssMeta.tempat||"...........")}, ${escapeHtml(ssMeta.tanggal||"...........")}<br>Guru Mata Pelajaran<br><br><br><br><b>${escapeHtml(ssMeta.guru||"(...........................)")}</b><br>NIP. ${escapeHtml(ssMeta.nipGuru||"-")}</td>
+    </tr></table>
+
+    <div style="page-break-before:always; margin-top:20px;">
+      <div class="sec-title" style="margin-top:0;">Kisi-Kisi Soal</div>
+      <table class="kisi-table"><thead><tr>
+        <th style="width:34px;">No</th><th>Indikator Soal</th><th style="width:150px;">Level Kognitif</th><th style="width:70px;">Bentuk</th>
+      </tr></thead><tbody>${kisiRows}</tbody></table>
+
+      <div class="sec-title">Kunci Jawaban — Pilihan Ganda</div>
+      ${kunciPgHtml}
+
+      <div class="sec-title">Kunci Jawaban &amp; Rubrik — Uraian/Esai</div>
+      ${kunciEsaiHtml}
+    </div>
+  </div>`;
+}
+
+async function ssExportDocx(){
+  if(!ssLastGenerated){ alert('Klik "🪄 Buat Otomatis" terlebih dahulu sebelum mengekspor ke Word.'); return; }
+  if(typeof docx === "undefined"){ alert("Pustaka Word (docx) belum termuat. Pastikan kamu terhubung ke internet lalu muat ulang halaman."); return; }
+  const { Document, Packer, Paragraph, TextRun, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle, ShadingType, PageBreak } = docx;
+  const { mapelNama, jenis, pg, esai } = ssLastGenerated;
+  const id = data.identitas || {};
+
+  const BORDER = { style: BorderStyle.SINGLE, size:2, color:"999999" };
+  const CB = { top:BORDER, bottom:BORDER, left:BORDER, right:BORDER };
+  const NB = { style: BorderStyle.NONE, size:0, color:"FFFFFF" };
+  const NBS = { top:NB, bottom:NB, left:NB, right:NB };
+  const HEAD_FILL = { type: ShadingType.CLEAR, fill:"E4EBFA" };
+
+  function idRow(l1,v1,l2,v2){
+    return new TableRow({ children:[
+      new TableCell({ width:{size:2000,type:WidthType.DXA}, borders:CB, children:[new Paragraph({children:[new TextRun({text:l1,bold:true,size:19})]})]}),
+      new TableCell({ width:{size:3500,type:WidthType.DXA}, borders:CB, children:[new Paragraph({children:[new TextRun({text:v1,size:19})]})]}),
+      new TableCell({ width:{size:2000,type:WidthType.DXA}, borders:CB, children:[new Paragraph({children:[new TextRun({text:l2,bold:true,size:19})]})]}),
+      new TableCell({ width:{size:3500,type:WidthType.DXA}, borders:CB, children:[new Paragraph({children:[new TextRun({text:v2,size:19})]})]}),
+    ]});
+  }
+  const identTable = new Table({
+    width:{size:100,type:WidthType.PERCENTAGE}, columnWidths:[2000,3500,2000,3500],
+    rows:[
+      idRow("Mata Pelajaran", mapelNama||"", "Hari / Tanggal", ssMeta.tanggal||"-"),
+      idRow("Kelas", id.kelas||"", "Waktu", ssMeta.alokasi||"90 menit"),
+      idRow("Tahun Pelajaran", id.tahunPelajaran||"", "Kurikulum", "Merdeka")
+    ]
+  });
+
+  const petunjukList = [
+    "Tulis nama, kelas, dan mata pelajaran pada lembar jawaban yang disediakan.",
+    "Bacalah setiap soal dengan teliti sebelum menjawab.",
+    "Pilihlah salah satu jawaban yang paling tepat pada soal pilihan ganda dengan menyilang huruf A, B, C, D, atau E.",
+    "Kerjakan soal uraian secara singkat, jelas, dan sistematis.",
+    "Periksa kembali jawaban sebelum dikumpulkan kepada pengawas."
+  ];
+
+  const children = [];
+  children.push(new Paragraph({ alignment:AlignmentType.CENTER, children:[new TextRun({text:id.sekolah||"(Nama Sekolah)", bold:true, size:26})]}));
+  if(id.alamat) children.push(new Paragraph({ alignment:AlignmentType.CENTER, children:[new TextRun({text:id.alamat, size:18, color:"555555"})]}));
+  children.push(new Paragraph({ border:{bottom:{style:BorderStyle.SINGLE,size:10,color:"1a2138"}}, spacing:{after:150} }));
+  children.push(new Paragraph({ alignment:AlignmentType.CENTER, spacing:{before:100,after:40}, children:[new TextRun({text:`NASKAH SOAL ${SS_JENIS_LABELS[jenis]||""}`, bold:true, size:24})]}));
+  children.push(new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:200}, children:[new TextRun({text:`Tahun Pelajaran ${id.tahunPelajaran||""}`, size:20})]}));
+  children.push(identTable);
+  children.push(new Paragraph({ spacing:{before:200,after:60}, children:[new TextRun({text:"PETUNJUK UMUM", bold:true, size:20})]}));
+  petunjukList.forEach((t,i)=>{
+    children.push(new Paragraph({ spacing:{after:40}, children:[ new TextRun({text:`${i+1}. `,bold:true,size:19}), new TextRun({text:t,size:19}) ]}));
+  });
+  children.push(new Paragraph({ spacing:{before:220,after:80}, children:[new TextRun({text:"A. PILIHAN GANDA", bold:true, size:20})]}));
+  pg.forEach(q=>{
+    children.push(new Paragraph({ spacing:{before:140,after:40}, children:[ new TextRun({text:`${q.no}. `,bold:true,size:19}), new TextRun({text:q.stem,size:19}) ]}));
+    q.options.forEach(o=>{
+      children.push(new Paragraph({ indent:{left:360}, spacing:{after:20}, children:[ new TextRun({text:`${o.letter}. `,size:19}), new TextRun({text:o.text,size:19}) ]}));
+    });
+  });
+  children.push(new Paragraph({ spacing:{before:220,after:80}, children:[new TextRun({text:"B. URAIAN / ESAI", bold:true, size:20})]}));
+  esai.forEach(q=>{
+    children.push(new Paragraph({ spacing:{before:140,after:40}, children:[ new TextRun({text:`${q.no}. `,bold:true,size:19}), new TextRun({text:q.stem,size:19}) ]}));
+  });
+
+  const sigTable = new Table({
+    width:{size:100,type:WidthType.PERCENTAGE}, columnWidths:[5000,5000],
+    rows:[ new TableRow({ children:[
+      new TableCell({ width:{size:5000,type:WidthType.DXA}, borders:NBS, children:[
+        new Paragraph({alignment:AlignmentType.CENTER, spacing:{before:200}, children:[new TextRun({text:"Mengetahui,",size:19})]}),
+        new Paragraph({alignment:AlignmentType.CENTER, children:[new TextRun({text:"Kepala Sekolah",size:19})]}),
+        new Paragraph({alignment:AlignmentType.CENTER, spacing:{before:600}, children:[new TextRun({text:ssMeta.kepsek||"(...........................)", bold:true, size:19})]}),
+        new Paragraph({alignment:AlignmentType.CENTER, children:[new TextRun({text:`NIP. ${ssMeta.nipKepsek||"-"}`, size:19})]}),
+      ]}),
+      new TableCell({ width:{size:5000,type:WidthType.DXA}, borders:NBS, children:[
+        new Paragraph({alignment:AlignmentType.CENTER, spacing:{before:200}, children:[new TextRun({text:`${ssMeta.tempat||"..........."}, ${ssMeta.tanggal||"..........."}`,size:19})]}),
+        new Paragraph({alignment:AlignmentType.CENTER, children:[new TextRun({text:"Guru Mata Pelajaran",size:19})]}),
+        new Paragraph({alignment:AlignmentType.CENTER, spacing:{before:600}, children:[new TextRun({text:ssMeta.guru||"(...........................)", bold:true, size:19})]}),
+        new Paragraph({alignment:AlignmentType.CENTER, children:[new TextRun({text:`NIP. ${ssMeta.nipGuru||"-"}`, size:19})]}),
+      ]})
+    ]})]
+  });
+  children.push(new Paragraph({spacing:{before:100}}));
+  children.push(sigTable);
+
+  children.push(new Paragraph({ children:[new PageBreak()] }));
+  children.push(new Paragraph({ alignment:AlignmentType.CENTER, spacing:{after:150}, children:[new TextRun({text:"KISI-KISI SOAL", bold:true, size:22})]}));
+
+  const kisiHeader = new TableRow({ tableHeader:true, children:[
+    new TableCell({ width:{size:800,type:WidthType.DXA}, borders:CB, shading:HEAD_FILL, children:[new Paragraph({children:[new TextRun({text:"No",bold:true,size:18})]})]}),
+    new TableCell({ width:{size:5200,type:WidthType.DXA}, borders:CB, shading:HEAD_FILL, children:[new Paragraph({children:[new TextRun({text:"Indikator Soal",bold:true,size:18})]})]}),
+    new TableCell({ width:{size:2200,type:WidthType.DXA}, borders:CB, shading:HEAD_FILL, children:[new Paragraph({children:[new TextRun({text:"Level Kognitif",bold:true,size:18})]})]}),
+    new TableCell({ width:{size:1400,type:WidthType.DXA}, borders:CB, shading:HEAD_FILL, children:[new Paragraph({children:[new TextRun({text:"Bentuk",bold:true,size:18})]})]}),
+  ]});
+  const kisiData = [
+    ...pg.map(q=>({no:q.no, indikator:q.indikator, level:q.levelLabel, bentuk:"PG"})),
+    ...esai.map(q=>({no:q.no, indikator:q.indikator, level:q.levelLabel, bentuk:"Esai"}))
+  ];
+  const kisiRows = kisiData.map(r=> new TableRow({ children:[
+    new TableCell({ width:{size:800,type:WidthType.DXA}, borders:CB, children:[new Paragraph({alignment:AlignmentType.CENTER, children:[new TextRun({text:String(r.no),size:18})]})]}),
+    new TableCell({ width:{size:5200,type:WidthType.DXA}, borders:CB, children:[new Paragraph({children:[new TextRun({text:r.indikator,size:18})]})]}),
+    new TableCell({ width:{size:2200,type:WidthType.DXA}, borders:CB, children:[new Paragraph({alignment:AlignmentType.CENTER, children:[new TextRun({text:r.level,size:18})]})]}),
+    new TableCell({ width:{size:1400,type:WidthType.DXA}, borders:CB, children:[new Paragraph({alignment:AlignmentType.CENTER, children:[new TextRun({text:r.bentuk,size:18})]})]}),
+  ]}));
+  children.push(new Table({ width:{size:100,type:WidthType.PERCENTAGE}, columnWidths:[800,5200,2200,1400], rows:[kisiHeader, ...kisiRows] }));
+
+  children.push(new Paragraph({ spacing:{before:220,after:80}, children:[new TextRun({text:"KUNCI JAWABAN — PILIHAN GANDA", bold:true, size:20})]}));
+  for(let i=0;i<pg.length;i+=5){
+    const group = pg.slice(i,i+5);
+    const runs = group.map((q,gi)=> new TextRun({text:`${q.no}. ${q.correctLetter}` + (gi<group.length-1 ? "     " : ""), size:19}));
+    children.push(new Paragraph({ spacing:{after:30}, children: runs }));
+  }
+
+  children.push(new Paragraph({ spacing:{before:220,after:80}, children:[new TextRun({text:"KUNCI JAWABAN & RUBRIK — URAIAN/ESAI", bold:true, size:20})]}));
+  esai.forEach(q=>{
+    children.push(new Paragraph({ spacing:{before:120,after:20}, children:[ new TextRun({text:`${q.no}. `, bold:true, size:19}), new TextRun({text:q.stem, italics:true, size:19}) ]}));
+    children.push(new Paragraph({ spacing:{after:20}, children:[ new TextRun({text:"Kunci: ", bold:true, size:19}), new TextRun({text:q.kunci, size:19}) ]}));
+    const rubrikHeader = new TableRow({ children:[
+      new TableCell({ width:{size:1200,type:WidthType.DXA}, borders:CB, shading:HEAD_FILL, children:[new Paragraph({alignment:AlignmentType.CENTER, children:[new TextRun({text:"Skor",bold:true,size:18})]})]}),
+      new TableCell({ width:{size:8600,type:WidthType.DXA}, borders:CB, shading:HEAD_FILL, children:[new Paragraph({children:[new TextRun({text:"Kriteria",bold:true,size:18})]})]}),
+    ]});
+    const rubrikRows = q.rubrik.map(r=> new TableRow({ children:[
+      new TableCell({ width:{size:1200,type:WidthType.DXA}, borders:CB, children:[new Paragraph({alignment:AlignmentType.CENTER, children:[new TextRun({text:String(r.skor), bold:true, size:18})]})]}),
+      new TableCell({ width:{size:8600,type:WidthType.DXA}, borders:CB, children:[new Paragraph({children:[new TextRun({text:r.kriteria, size:18})]})]}),
+    ]}));
+    children.push(new Table({ width:{size:100,type:WidthType.PERCENTAGE}, columnWidths:[1200,8600], rows:[rubrikHeader, ...rubrikRows] }));
+    children.push(new Paragraph({spacing:{after:100}}));
+  });
+
+  const wordDoc = new Document({
+    sections:[{
+      properties:{ page:{ size:{width:11907,height:16840}, margin:{top:1000,bottom:1000,left:1300,right:1000} } },
+      children
+    }]
+  });
+
+  try{
+    const blob = await Packer.toBlob(wordDoc);
+    const jenisSlug = jenis.toUpperCase().replace(/-/g,"_");
+    const namaMapelSlug = (mapelNama||"Mapel").replace(/[^a-zA-Z0-9]+/g,"_");
+    const filename = `Soal_${namaMapelSlug}_${jenisSlug}.docx`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }catch(e){
+    alert("Gagal membuat file Word: " + e.message);
+  }
+}
+
 /* ---------- Inisialisasi fitur baru ---------- */
 function atpLkpdSoalAsesmenInit(){
   atpRefreshMapelOptions();
@@ -4176,6 +4687,9 @@ function atpLkpdSoalAsesmenInit(){
   soalRefreshOptionsOnly();
   asesmenSiswa = asesmenLoad();
   asesmenRenderTable();
+  ssLoadMeta();
+  ssRefreshOptionsOnly();
+  ssFillMetaInputs();
 }
 
 renderAll();
