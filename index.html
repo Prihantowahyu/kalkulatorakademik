@@ -1944,9 +1944,27 @@ function renderConsistencyOverview(){
   }
   let anyMismatch = false;
   const rows = data.mapel.map((m, mi)=>{
+    const semLabel = m.semester === "tahun" ? "Satu Tahun" : (data.semesters.find(s=>s.id===m.semester)?.nama || "-");
+    // Mapel "Satu Tahun" sengaja tidak muncul di Program Semester/Prota/Silabus (kontennya
+    // beda tiap semester, jadi harus dipecah jadi 2 mapel terpisah untuk itu). Karena itu ia
+    // TIDAK PERNAH bisa punya KD/IPK/cadangan lewat UI — kalau dipaksa dicek konsistensinya,
+    // akan selalu tampil "Kurang JP" tanpa cara memperbaikinya. Jadi ditampilkan sebagai info
+    // netral saja (RPE-nya tetap valid & dipakai di Ringkasan/Export Excel), bukan status error.
+    if(m.semester === "tahun"){
+      const rpe = getRpeJamEfektif(m);
+      return `<tr>
+        <td>${escapeHtml(m.nama||"(tanpa nama)")}</td>
+        <td class="center">${semLabel}</td>
+        <td class="center">${m.jpMinggu}</td>
+        <td class="center"><b>${rpe}</b></td>
+        <td class="center">–</td>
+        <td class="center">–</td>
+        <td class="center">–</td>
+        <td class="center" style="white-space:nowrap;">ℹ️ Hanya RPE tahunan (bukan untuk Prosem/RPP/dst)</td>
+      </tr>`;
+    }
     const c = consistencyInfo(m);
     if(c.status !== "match") anyMismatch = true;
-    const semLabel = m.semester === "tahun" ? "Satu Tahun" : (data.semesters.find(s=>s.id===m.semester)?.nama || "-");
     const dot = c.status === "match" ? "🟢" : c.status === "over" ? "🔴" : "🟡";
     const statusText = c.status === "match" ? "Sesuai RPE" : c.status === "over" ? `Kelebihan ${Math.abs(c.selisih)} JP` : `Kurang ${Math.abs(c.selisih)} JP`;
     const fixBtn = c.status !== "match" ? ` <button class="btn btn-ghost btn-sm" style="padding:2px 9px; font-size:11px; margin-left:4px;" title="Atur ulang jam TM/UK mapel ini otomatis supaya sesuai RPE" onclick="autoAturDariOverview(${mi})">⚙️ Atur</button>` : "";
@@ -3596,15 +3614,17 @@ function rppRefreshOptionsOnly(){
   if(!selMapel) return; // section belum dirender (harusnya selalu ada)
   const prevMapelVal = selMapel.value;
   selMapel.innerHTML = "";
-  data.mapel.forEach((m,i)=>{
+  const eligible = eligibleMapelList(); // mapel "Satu Tahun" tidak punya KD/IPK (tak bisa diisi lewat Program Semester), jadi disembunyikan di sini
+  eligible.forEach(x=>{
     const opt = document.createElement("option");
-    opt.value = i; opt.textContent = m.nama || `Mapel ${i+1}`;
+    opt.value = x.i; opt.textContent = x.m.nama || `Mapel ${x.i+1}`;
     selMapel.appendChild(opt);
   });
-  if(!data.mapel.length){ selMapel.innerHTML = '<option value="">(Belum ada mapel)</option>'; }
+  if(!eligible.length){ selMapel.innerHTML = '<option value="">(Belum ada mapel dengan semester spesifik)</option>'; }
   else {
-    if(prevMapelVal !== "" && data.mapel[+prevMapelVal]) { selMapel.value = prevMapelVal; rppMapelIdx = +prevMapelVal; }
-    else { selMapel.value = "0"; rppMapelIdx = 0; }
+    const prevValid = prevMapelVal !== "" && eligible.some(x=>String(x.i)===prevMapelVal);
+    if(prevValid){ selMapel.value = prevMapelVal; rppMapelIdx = +prevMapelVal; }
+    else { selMapel.value = String(eligible[0].i); rppMapelIdx = eligible[0].i; }
   }
   rppRefreshKdOptionsOnly();
 }
@@ -4042,14 +4062,18 @@ function atpRefreshMapelOptions(){
   if(!sel) return;
   const prev = sel.value;
   sel.innerHTML = "";
-  data.mapel.forEach((m,i)=>{
+  const eligible = eligibleMapelList(); // sama seperti RPP: mapel "Satu Tahun" tak punya KD/IPK, disembunyikan
+  eligible.forEach(x=>{
     const opt = document.createElement("option");
-    opt.value = i; opt.textContent = m.nama || `Mapel ${i+1}`;
+    opt.value = x.i; opt.textContent = x.m.nama || `Mapel ${x.i+1}`;
     sel.appendChild(opt);
   });
-  if(!data.mapel.length){ sel.innerHTML = '<option value="">(Belum ada mapel)</option>'; }
-  else if(prev !== "" && data.mapel[+prev]){ sel.value = prev; atpMapelIdx = +prev; }
-  else { sel.value = "0"; atpMapelIdx = 0; }
+  if(!eligible.length){ sel.innerHTML = '<option value="">(Belum ada mapel dengan semester spesifik)</option>'; }
+  else {
+    const prevValid = prev !== "" && eligible.some(x=>String(x.i)===prev);
+    if(prevValid){ sel.value = prev; atpMapelIdx = +prev; }
+    else { sel.value = String(eligible[0].i); atpMapelIdx = eligible[0].i; }
+  }
   atpRefresh();
 }
 // Ubah kalimat IPK/deskripsi menjadi narasi alur ("Peserta didik mampu ...") untuk kolom ATP.
@@ -4108,14 +4132,18 @@ function lkpdRefreshOptionsOnly(){
   if(!sel) return;
   const prev = sel.value;
   sel.innerHTML = "";
-  data.mapel.forEach((m,i)=>{
+  const eligible = eligibleMapelList();
+  eligible.forEach(x=>{
     const opt = document.createElement("option");
-    opt.value = i; opt.textContent = m.nama || `Mapel ${i+1}`;
+    opt.value = x.i; opt.textContent = x.m.nama || `Mapel ${x.i+1}`;
     sel.appendChild(opt);
   });
-  if(!data.mapel.length){ sel.innerHTML = '<option value="">(Belum ada mapel)</option>'; }
-  else if(prev !== "" && data.mapel[+prev]){ sel.value = prev; lkpdMapelIdx = +prev; }
-  else { sel.value = "0"; lkpdMapelIdx = 0; }
+  if(!eligible.length){ sel.innerHTML = '<option value="">(Belum ada mapel dengan semester spesifik)</option>'; }
+  else {
+    const prevValid = prev !== "" && eligible.some(x=>String(x.i)===prev);
+    if(prevValid){ sel.value = prev; lkpdMapelIdx = +prev; }
+    else { sel.value = String(eligible[0].i); lkpdMapelIdx = eligible[0].i; }
+  }
   lkpdRefreshKdOptions();
 }
 function lkpdRefreshKdOptions(){
@@ -4263,14 +4291,18 @@ function soalRefreshOptionsOnly(){
   if(!sel) return;
   const prev = sel.value;
   sel.innerHTML = "";
-  data.mapel.forEach((m,i)=>{
+  const eligible = eligibleMapelList();
+  eligible.forEach(x=>{
     const opt = document.createElement("option");
-    opt.value = i; opt.textContent = m.nama || `Mapel ${i+1}`;
+    opt.value = x.i; opt.textContent = x.m.nama || `Mapel ${x.i+1}`;
     sel.appendChild(opt);
   });
-  if(!data.mapel.length){ sel.innerHTML = '<option value="">(Belum ada mapel)</option>'; }
-  else if(prev !== "" && data.mapel[+prev]){ sel.value = prev; soalMapelIdx = +prev; }
-  else { sel.value = "0"; soalMapelIdx = 0; }
+  if(!eligible.length){ sel.innerHTML = '<option value="">(Belum ada mapel dengan semester spesifik)</option>'; }
+  else {
+    const prevValid = prev !== "" && eligible.some(x=>String(x.i)===prev);
+    if(prevValid){ sel.value = prev; soalMapelIdx = +prev; }
+    else { sel.value = String(eligible[0].i); soalMapelIdx = eligible[0].i; }
+  }
   soalRefreshKdOptions();
 }
 function soalRefreshKdOptions(){
@@ -4548,14 +4580,18 @@ function ssRefreshOptionsOnly(){
   if(!sel) return;
   const prev = sel.value;
   sel.innerHTML = "";
-  data.mapel.forEach((m,i)=>{
+  const eligible = eligibleMapelList();
+  eligible.forEach(x=>{
     const opt = document.createElement("option");
-    opt.value = i; opt.textContent = m.nama || `Mapel ${i+1}`;
+    opt.value = x.i; opt.textContent = x.m.nama || `Mapel ${x.i+1}`;
     sel.appendChild(opt);
   });
-  if(!data.mapel.length){ sel.innerHTML = '<option value="">(Belum ada mapel)</option>'; }
-  else if(prev !== "" && data.mapel[+prev]){ sel.value = prev; ssMapelIdx = +prev; }
-  else { sel.value = "0"; ssMapelIdx = 0; }
+  if(!eligible.length){ sel.innerHTML = '<option value="">(Belum ada mapel dengan semester spesifik)</option>'; }
+  else {
+    const prevValid = prev !== "" && eligible.some(x=>String(x.i)===prev);
+    if(prevValid){ sel.value = prev; ssMapelIdx = +prev; }
+    else { sel.value = String(eligible[0].i); ssMapelIdx = eligible[0].i; }
+  }
 }
 function ssMapelChanged(){ ssMapelIdx = +document.getElementById("ssMapelSelect").value; }
 function ssJenisChanged(){ /* dibaca ulang saat ssGenerate() dipanggil */ }
