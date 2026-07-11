@@ -494,10 +494,6 @@
         </div>
       </div>
       <div id="semesterBlocks"></div>
-      <div class="btn-row" style="margin-top:14px;">
-        <button class="btn btn-export" onclick="exportRpeOnlyExcel()">📊 Export Rencana Pekan Efektif ke Excel</button>
-      </div>
-      <p class="field-help" style="margin-top:6px;">Mengekspor <b>khusus</b> lembar Rencana Pekan Efektif (jumlah pekan, pekan tidak efektif, dan jam efektif) semua mata pelajaran — tanpa Program Semester/Tahunan/Silabus/RPP.</p>
     </div>
 
     <!-- STEP 4-5 -->
@@ -659,10 +655,6 @@
       <div id="atpEmptyInfo" class="field-help" style="margin-bottom:10px;"></div>
       <div style="overflow-x:auto;">
         <div id="atpTableWrap"></div>
-      </div>
-
-      <div class="btn-row" style="margin-top:14px;">
-        <button class="btn btn-export" onclick="exportAtpExcel()">📊 Export ATP &amp; TP ke Excel</button>
       </div>
 
       <div class="badge-info" style="margin-top:16px;">
@@ -900,7 +892,6 @@
       <div class="btn-row" style="margin-bottom:8px;">
         <button class="btn btn-primary" onclick="lkpdGenerate()">🪄 Buat LKPD Otomatis</button>
         <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak / PDF</button>
-        <button class="btn btn-export" onclick="lkpdExportWord()">⬇️ Export Word (.doc)</button>
       </div>
       <div class="field-help" style="margin-bottom:16px;">Isi dulu Mapel &amp; KD di atas (data diambil dari kolom IPK — sama seperti kartu RPP). Setelah dibuat, semua teks bisa diedit langsung di area pratinjau.</div>
 
@@ -933,7 +924,6 @@
       <div class="btn-row" style="margin-bottom:8px;">
         <button class="btn btn-primary" onclick="soalGenerate()">🪄 Buat Otomatis (10 Soal HOTS)</button>
         <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak / PDF</button>
-        <button class="btn btn-export" onclick="soalExportWord()">⬇️ Export Word (.doc)</button>
       </div>
       <div class="field-help" style="margin-bottom:16px;">Soal dibuat dari poin-poin di kolom IPK. Setelah muncul, klik langsung di teksnya untuk mengedit kalimat soal/kunci/pembahasan bila perlu.</div>
 
@@ -1193,6 +1183,24 @@ function resetAll(){
 }
 function round1(n){ return Math.round(n*10)/10; }
 function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s])); }
+/* ================= UTIL RANDOMISASI (untuk tombol "Buat Otomatis") =================
+   Semua fungsi Generate memakai helper ini supaya hasilnya BERVARIASI setiap kali
+   tombol diklik, namun tetap "mengikuti koridor point"-nya: kalimat/kata kerja yang
+   dipilih acak, tapi substansinya (materi, IPK, KD, jumlah & level soal) tetap
+   berasal dari data yang sudah diisi user -- tidak pernah mengarang di luar itu. */
+function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffleArr(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+/* Bangun urutan pakai poin secara acak (round-robin di atas urutan yang sudah diacak) --
+   dipakai supaya poin/IPK yang dipakai tiap soal tetap sesuai koridor data, hanya
+   urutan pemakaiannya yang berubah-ubah tiap kali tombol Generate diklik. */
+function cyclePool(pool){
+  const order = shuffleArr(pool);
+  return (i)=> order[i % order.length];
+}
 
 /* ---------- IDENTITAS ---------- */
 function renderIdentitas(){
@@ -1667,26 +1675,6 @@ async function exportAllExcel(){
   if(data.mapel.length === 0){ alert("Tambahkan minimal satu mata pelajaran terlebih dahulu."); return; }
   const wb = new ExcelJS.Workbook();
   for(const mapel of data.mapel){ await buildWorkbookForMapel(wb, mapel); }
-  await downloadWorkbook(wb, `Rencana Pekan Efektif - Semua Mapel.xlsx`);
-}
-
-// Export KHUSUS Rencana Pekan Efektif (tanpa Program Semester/Tahunan/Silabus/RPP) —
-// satu sheet per mata pelajaran x semester, memakai buildSheet() yang sama dengan
-// yang dipakai buildWorkbookForMapel, tapi tanpa dokumen turunan lainnya.
-async function exportRpeOnlyExcel(){
-  if(typeof ExcelJS === "undefined"){ alert("Pustaka Excel belum termuat. Pastikan kamu terhubung ke internet lalu muat ulang halaman."); return; }
-  if(data.mapel.length === 0){ alert("Tambahkan minimal satu mata pelajaran terlebih dahulu di kartu Mata Pelajaran & Jam Pelajaran."); return; }
-  const wb = new ExcelJS.Workbook();
-  data.mapel.forEach(mapel=>{
-    const semsToExport = mapel.semester === "tahun" ? data.semesters : data.semesters.filter(s=>s.id===mapel.semester);
-    semsToExport.forEach(sem=>{
-      let sheetName = `${mapel.nama} - ${sem.nama}`.substring(0,31).replace(/[\\\/\?\*\[\]:]/g,"-");
-      let uniq = sheetName, n=1;
-      while(wb.getWorksheet(uniq)) { uniq = (sheetName.substring(0,28)+"-"+n).substring(0,31); n++; }
-      const ws = wb.addWorksheet(uniq, { views:[{ showGridLines:false }], pageSetup:{ paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:0, margins:{left:0.4,right:0.4,top:0.5,bottom:0.5,header:0.2,footer:0.2} } });
-      buildSheet(ws, mapel, sem);
-    });
-  });
   await downloadWorkbook(wb, `Rencana Pekan Efektif - Semua Mapel.xlsx`);
 }
 
@@ -2859,14 +2847,40 @@ function pointToInstrumentLine(point, kind){
   const imperative = verbToImperative(p);
   const lower = p.charAt(0).toLowerCase() + p.slice(1);
   const base = imperative || ("Jelaskan mengenai " + lower);
-  switch(kind){
-    case "praktik": return `${base} secara langsung (praktik), lalu tunjukkan/dokumentasikan hasilnya.`;
-    case "pg": return `[Soal PG] ${base}? (sediakan 4 pilihan jawaban A–D, satu jawaban benar)`;
-    case "observasi": return `Amati dan nilai siswa saat ${lower}.`;
-    case "proyek": return `Buat proyek (individu/kelompok) untuk ${lower}, lalu presentasikan hasilnya.`;
-    case "portofolio": return `Kumpulkan bukti/hasil kerja terkait ${lower} ke dalam portofolio.`;
-    case "esai": default: return `${base}!`;
-  }
+  const VARIAN = {
+    praktik: [
+      `${base} secara langsung (praktik), lalu tunjukkan/dokumentasikan hasilnya.`,
+      `${base} melalui kegiatan praktik langsung, kemudian catat dan laporkan hasil kerjamu.`,
+      `Lakukan unjuk kerja untuk ${lower}, lalu dokumentasikan prosesnya secara rinci.`
+    ],
+    pg: [
+      `[Soal PG] ${base}? (sediakan 4 pilihan jawaban A–D, satu jawaban benar)`,
+      `[Soal PG] Manakah pernyataan yang paling tepat terkait ${lower}? (sediakan 4 pilihan A–D, satu jawaban benar)`,
+      `[Soal PG] Pilihlah jawaban yang paling sesuai mengenai ${lower}. (sediakan 4 opsi A–D, satu kunci jawaban)`
+    ],
+    observasi: [
+      `Amati dan nilai siswa saat ${lower}.`,
+      `Lakukan pengamatan terhadap peserta didik ketika ${lower}, catat pada lembar observasi.`,
+      `Observasi sikap dan keterampilan peserta didik selama ${lower} berlangsung.`
+    ],
+    proyek: [
+      `Buat proyek (individu/kelompok) untuk ${lower}, lalu presentasikan hasilnya.`,
+      `Rancang dan laksanakan proyek terkait ${lower}, kemudian laporkan hasilnya di depan kelas.`,
+      `Susun sebuah proyek kolaboratif mengenai ${lower}, lalu dokumentasikan tahapan pengerjaannya.`
+    ],
+    portofolio: [
+      `Kumpulkan bukti/hasil kerja terkait ${lower} ke dalam portofolio.`,
+      `Susun portofolio berisi hasil karya/bukti belajar mengenai ${lower}.`,
+      `Dokumentasikan proses dan hasil belajar terkait ${lower} dalam bentuk portofolio.`
+    ],
+    esai: [
+      `${base}!`,
+      `${base}. Jelaskan jawabanmu secara rinci disertai alasan!`,
+      `${base}, lalu berikan contoh nyata yang mendukung penjelasanmu!`
+    ]
+  };
+  const list = VARIAN[kind] || VARIAN.esai;
+  return randPick(list);
 }
 function generateContohInstrumen(mi, ri){
   const row = data.mapel[mi]?.materi?.[ri];
@@ -3362,24 +3376,56 @@ function rppDefaultSumatifBentuk(){
   if(rppModel === "discovery") return "Uraian Singkat";
   return "Uraian & Pilihan Ganda";
 }
+const RPP_TUJUAN_TEMPLATES = [
+  (model,ipkLower)=> `Melalui kegiatan pembelajaran dengan model ${model}, peserta didik dapat ${ipkLower} dengan tepat, penuh tanggung jawab, dan menunjukkan sikap kerja sama selama proses pembelajaran.`,
+  (model,ipkLower)=> `Dengan menerapkan model pembelajaran ${model}, peserta didik diharapkan mampu ${ipkLower} secara mandiri maupun berkelompok, disertai sikap tanggung jawab dan percaya diri.`,
+  (model,ipkLower)=> `Setelah mengikuti proses pembelajaran berbasis ${model}, peserta didik dapat ${ipkLower} dengan benar, serta menunjukkan kemampuan bernalar kritis dan bekerja sama dengan baik.`,
+  (model,ipkLower)=> `Melalui rangkaian kegiatan model ${model}, peserta didik mampu ${ipkLower} secara tepat, aktif berpartisipasi, dan menunjukkan sikap gotong royong selama pembelajaran berlangsung.`
+];
 function rppTujuanPembelajaran(){
   const ipk = rppIPK();
   const model = RPP_MODELS[rppModel].label;
   const ipkLower = ipk.charAt(0).toLowerCase() + ipk.slice(1);
-  return `Melalui kegiatan pembelajaran dengan model ${model}, peserta didik dapat ${ipkLower} dengan tepat, penuh tanggung jawab, dan menunjukkan sikap kerja sama selama proses pembelajaran.`;
+  return randPick(RPP_TUJUAN_TEMPLATES)(model, ipkLower);
 }
 // Draf poin refleksi guru — mengingatkan guru untuk menilai ketercapaian tujuan, kendala
 // pelaksanaan sintaks/model, keterlibatan peserta didik, dan rencana tindak lanjut/perbaikan.
+const RPP_REFLEKSI_VARIAN = [
+  (materi)=> [
+    `Apakah tujuan pembelajaran tentang ${materi} sudah tercapai secara keseluruhan?`,
+    `Sejauh mana peserta didik mencapai pemahaman terhadap ${materi} pada pertemuan ini?`,
+    `Apakah indikator ketercapaian pembelajaran mengenai ${materi} sudah terpenuhi oleh sebagian besar peserta didik?`
+  ],
+  (materi)=>[
+    `Bagian mana dari materi ${materi} yang paling sulit dipahami peserta didik?`,
+    `Kesulitan apa yang paling banyak dialami peserta didik saat mempelajari ${materi}?`,
+    `Adakah miskonsepsi peserta didik terkait ${materi} yang perlu diluruskan pada pertemuan berikutnya?`
+  ],
+  (materi,model)=>[
+    `Apakah sintaks model ${model} terlaksana sesuai alokasi waktu yang direncanakan?`,
+    `Sejauh mana tahapan model ${model} berjalan efektif sesuai rencana pada pertemuan ini?`,
+    `Tahap mana pada model ${model} yang perlu disesuaikan atau diperbaiki pada pertemuan berikutnya?`
+  ],
+  ()=>[
+    `Bagaimana tingkat keaktifan, kolaborasi, dan antusiasme peserta didik selama proses pembelajaran berlangsung?`,
+    `Bagaimana partisipasi dan interaksi peserta didik selama kegiatan belajar berlangsung?`,
+    `Apakah peserta didik terlibat aktif dan bekerja sama dengan baik selama pembelajaran?`
+  ],
+  ()=>[
+    `Apa kendala teknis/non-teknis (media, waktu, kondisi kelas) yang muncul, dan bagaimana solusinya?`,
+    `Kendala apa saja (media, waktu, kondisi kelas, dsb.) yang dijumpai selama pembelajaran, dan bagaimana mengatasinya?`,
+    `Hambatan apa yang muncul selama proses pembelajaran, serta langkah apa yang diambil untuk mengatasinya?`
+  ],
+  ()=>[
+    `Apa rencana tindak lanjut (remedial, pengayaan, atau perbaikan strategi mengajar) untuk pertemuan selanjutnya?`,
+    `Langkah tindak lanjut apa (remedial/pengayaan/perbaikan strategi) yang akan dilakukan pada pertemuan berikutnya?`,
+    `Apa rencana perbaikan pembelajaran selanjutnya berdasarkan hasil refleksi pada pertemuan ini?`
+  ]
+];
 function rppRefleksiGuruDefault(){
   const materi = rppMaterial();
   const model = RPP_MODELS[rppModel].label;
-  return [
-    `1) Apakah tujuan pembelajaran tentang ${materi} sudah tercapai secara keseluruhan? Bagian mana yang paling sulit dipahami peserta didik?`,
-    `2) Apakah sintaks model ${model} terlaksana sesuai alokasi waktu yang direncanakan? Tahap mana yang perlu disesuaikan pada pertemuan berikutnya?`,
-    `3) Bagaimana tingkat keaktifan, kolaborasi, dan antusiasme peserta didik selama proses pembelajaran berlangsung?`,
-    `4) Apa kendala teknis/non-teknis (media, waktu, kondisi kelas) yang muncul, dan bagaimana solusinya?`,
-    `5) Apa rencana tindak lanjut (remedial, pengayaan, atau perbaikan strategi mengajar) untuk pertemuan selanjutnya?`
-  ].join("\n");
+  return RPP_REFLEKSI_VARIAN.map((variants,i)=> `${i+1}) ${randPick(variants(materi,model))}`).join("\n");
 }
 function rppRegenRefleksi(){
   document.getElementById("rppRefleksiGuru").value = rppRefleksiGuruDefault();
@@ -3963,61 +4009,6 @@ function atpRefresh(){
   wrap.innerHTML = html;
 }
 
-// Export KHUSUS Alur Tujuan Pembelajaran (ATP) & Tujuan Pembelajaran (TP) ke Excel,
-// untuk mata pelajaran yang sedang dipilih di dropdown ATP.
-async function exportAtpExcel(){
-  if(typeof ExcelJS === "undefined"){ alert("Pustaka Excel belum termuat. Pastikan kamu terhubung ke internet lalu muat ulang halaman."); return; }
-  const mapel = data.mapel[atpMapelIdx];
-  if(!mapel){ alert("Pilih mata pelajaran terlebih dahulu."); return; }
-  const rows = mapel.materi.filter(r=>r.jenis==="kd");
-  if(rows.length === 0){ alert(`Belum ada baris KD/IPK untuk "${mapel.nama}". Tambahkan dulu di kartu Program Semester (07).`); return; }
-
-  const wb = new ExcelJS.Workbook();
-  const ws = wb.addWorksheet("ATP & TP", { views:[{ showGridLines:false }], pageSetup:{ paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:0, margins:{left:0.4,right:0.4,top:0.5,bottom:0.5,header:0.2,footer:0.2} } });
-  ws.columns = [ {width:5},{width:12},{width:40},{width:36},{width:42},{width:11} ];
-
-  let r = 1;
-  ws.mergeCells(`A${r}:F${r}`);
-  styleCell(ws.getCell(`A${r}`), { font:{bold:true, size:14}, alignment:{horizontal:"center"}, border:false });
-  ws.getCell(`A${r}`).value = "ALUR TUJUAN PEMBELAJARAN (ATP) & TUJUAN PEMBELAJARAN (TP)";
-  r++;
-  ws.mergeCells(`A${r}:F${r}`);
-  styleCell(ws.getCell(`A${r}`), { font:{italic:true, size:11}, alignment:{horizontal:"center"}, border:false });
-  ws.getCell(`A${r}`).value = `${mapel.nama}${data.identitas && data.identitas.sekolah ? " — " + data.identitas.sekolah : ""}`;
-  r += 2;
-
-  const header = ["No","Kode","Alur Tujuan Pembelajaran (ATP)","Tujuan Pembelajaran (TP)","Indikator Ketercapaian Tujuan Pembelajaran (IKTP)","Alokasi (JP)"];
-  header.forEach((h,i)=>{
-    styleCell(ws.getCell(r, i+1), { font:{bold:true}, fill:FILL_LABEL, alignment:{horizontal:"center", vertical:"middle", wrapText:true} });
-    ws.getCell(r, i+1).value = h;
-  });
-  r++;
-
-  rows.forEach((row,i)=>{
-    const materi = row.deskripsi || "materi ini";
-    const tp = row.ipk && row.ipk.trim() ? row.ipk : (row.deskripsi || "(belum ada IPK/TP — lengkapi di Program Semester)");
-    const atp = atpToNarasi(row.ipk || row.deskripsi, materi);
-    const iktpPoints = extractPoints(row.ipk||"").length ? extractPoints(row.ipk||"") : extractPoints(row.ket||"");
-    const iktpText = iktpPoints.length
-      ? iktpPoints.map((p,pi)=>`${pi+1}. Peserta didik dapat ${p.charAt(0).toLowerCase()+p.slice(1)}.`).join("\n")
-      : "(Isi kolom IPK pada Program Semester untuk memunculkan indikator secara otomatis.)";
-    const jp = round1((parseFloat(row.tm)||0) + (parseFloat(row.uk)||0));
-
-    ws.getCell(r,1).value = i+1;
-    ws.getCell(r,2).value = row.kode || "-";
-    ws.getCell(r,3).value = atp;
-    ws.getCell(r,4).value = tp;
-    ws.getCell(r,5).value = iktpText;
-    ws.getCell(r,6).value = `${jp} JP`;
-    for(let c=1;c<=6;c++){
-      styleCell(ws.getCell(r,c), { alignment:{ vertical:"top", wrapText:true, horizontal:(c===1||c===2||c===6)?"center":"left" } });
-    }
-    r++;
-  });
-
-  await downloadWorkbook(wb, `ATP & TP - ${mapel.nama}.xlsx`);
-}
-
 /* ================= LKPD BERBASIS PBL ================= */
 let lkpdMapelIdx = 0, lkpdRowIdx = 0;
 function lkpdRefreshOptionsOnly(){
@@ -4072,11 +4063,34 @@ function lkpdGenerate(){
   const produk = document.getElementById("lkpdProduk").value;
   const sem = (data.semesters||[]).find(s=>s.id===mapel.semester);
 
+  const LKPD_PERTANYAAN_TEMPLATES = [
+    p=> `Bagaimana kelompokmu menganalisis dan menjelaskan hubungan antara masalah yang diberikan dengan ${p}?`,
+    p=> `Bagaimana keterkaitan antara wacana/kasus yang diberikan dengan ${p}? Jelaskan hasil diskusi kelompokmu.`,
+    p=> `Menurut kelompokmu, bagaimana ${p} dapat digunakan untuk memecahkan masalah pada kasus yang diberikan?`,
+    p=> `Diskusikan bersama kelompokmu: apa hubungan antara ${p} dengan permasalahan yang sedang dikaji?`
+  ];
   const pertanyaanHtml = points.length
-    ? `<ol>${points.map(p=>`<li>Bagaimana kelompokmu menganalisis dan menjelaskan hubungan antara masalah yang diberikan dengan ${escapeHtml(p.charAt(0).toLowerCase()+p.slice(1))}?</li>`).join("")}</ol>`
+    ? `<ol>${points.map(p=>`<li>${escapeHtml(randPick(LKPD_PERTANYAAN_TEMPLATES)(p.charAt(0).toLowerCase()+p.slice(1)))}</li>`).join("")}</ol>`
     : `<ol><li>Identifikasi masalah utama yang berkaitan dengan ${escapeHtml(materi)} berdasarkan wacana/kasus yang diberikan guru.</li>
        <li>Kumpulkan informasi/data pendukung dari berbagai sumber (buku, internet, pengamatan) untuk menjawab masalah tersebut.</li>
        <li>Analisis informasi yang terkumpul bersama anggota kelompok.</li></ol>`;
+
+  const LKPD_TUJUAN_TEMPLATES = [
+    (ipkLower)=> `Setelah mengerjakan LKPD ini secara berkelompok, peserta didik diharapkan dapat ${ipkLower} melalui kegiatan penyelidikan, kolaborasi, dan penciptaan karya bersama.`,
+    (ipkLower)=> `Melalui pengerjaan LKPD ini secara berkelompok, peserta didik diharapkan mampu ${ipkLower} dengan cara menyelidiki, berdiskusi, dan berkolaborasi bersama anggota kelompok.`,
+    (ipkLower)=> `Dengan menyelesaikan LKPD ini bersama kelompok, peserta didik diharapkan dapat ${ipkLower} melalui proses penyelidikan aktif dan kerja sama tim.`
+  ];
+  const LKPD_ORIENTASI_TEMPLATES = [
+    (m)=> `Perhatikan permasalahan/kasus kontekstual yang berkaitan dengan <b>${m}</b> berikut ini (guru dapat menambahkan gambar, video, atau artikel pendukung):`,
+    (m)=> `Cermati wacana/kasus nyata yang berkaitan dengan <b>${m}</b> di bawah ini (guru dapat melengkapi dengan gambar, video, atau artikel pendukung):`,
+    (m)=> `Simak permasalahan kontekstual terkait <b>${m}</b> berikut (dapat dilengkapi guru dengan gambar, video, atau artikel pendukung):`
+  ];
+  const LKPD_REFLEKSI_VARIAN = [
+    (m)=> [`Apa hal baru yang saya pelajari dari kegiatan ini tentang ${m}?`, `Pemahaman baru apa yang saya dapatkan mengenai ${m} setelah kegiatan ini?`],
+    ()=> [`Bagian mana yang menurut saya paling menantang, dan bagaimana saya mengatasinya?`, `Kesulitan apa yang paling saya rasakan selama kegiatan ini, dan bagaimana cara saya mengatasinya?`],
+    ()=> [`Bagaimana kontribusi saya terhadap kerja sama kelompok pada kegiatan ini?`, `Sejauh mana saya berkontribusi aktif dalam kerja sama kelompok pada kegiatan ini?`],
+    ()=> [`Apa yang akan saya lakukan lebih baik pada kegiatan kelompok berikutnya?`, `Hal apa yang perlu saya perbaiki agar lebih baik pada kegiatan kelompok berikutnya?`]
+  ];
 
   const html = `
     <div class="kop">
@@ -4093,10 +4107,10 @@ function lkpdGenerate(){
     </table>
 
     <div class="sec-title">A. Tujuan Pembelajaran</div>
-    <p>Setelah mengerjakan LKPD ini secara berkelompok, peserta didik diharapkan dapat ${escapeHtml(ipk.charAt(0).toLowerCase()+ipk.slice(1))} melalui kegiatan penyelidikan, kolaborasi, dan penciptaan karya bersama.</p>
+    <p>${randPick(LKPD_TUJUAN_TEMPLATES)(escapeHtml(ipk.charAt(0).toLowerCase()+ipk.slice(1)))}</p>
 
     <div class="sec-title">B. Orientasi Masalah</div>
-    <p>Perhatikan permasalahan/kasus kontekstual yang berkaitan dengan <b>${escapeHtml(materi)}</b> berikut ini (guru dapat menambahkan gambar, video, atau artikel pendukung):</p>
+    <p>${randPick(LKPD_ORIENTASI_TEMPLATES)(escapeHtml(materi))}</p>
     <p style="border:1.5px dashed var(--line); border-radius:10px; padding:10px 12px; background:#F8FAFF;"><i>(Tempel/lampirkan wacana, gambar, atau studi kasus terkait ${escapeHtml(materi)} di sini)</i></p>
 
     <div class="sec-title">C. Kegiatan Kolaborasi Kelompok</div>
@@ -4124,12 +4138,7 @@ function lkpdGenerate(){
 
     <div class="sec-title">F. Refleksi Diri Peserta Didik</div>
     <p>Jawab secara individu setelah kegiatan kelompok selesai:</p>
-    <ol>
-      <li>Apa hal baru yang saya pelajari dari kegiatan ini tentang ${escapeHtml(materi)}?</li>
-      <li>Bagian mana yang menurut saya paling menantang, dan bagaimana saya mengatasinya?</li>
-      <li>Bagaimana kontribusi saya terhadap kerja sama kelompok pada kegiatan ini?</li>
-      <li>Apa yang akan saya lakukan lebih baik pada kegiatan kelompok berikutnya?</li>
-    </ol>
+    <ol>${LKPD_REFLEKSI_VARIAN.map((v,i)=>`<li>${escapeHtml(randPick(v(materi)))}</li>`).join("")}</ol>
 
     <div class="sec-title">G. Rubrik Penilaian Kolaborasi &amp; Kreativitas</div>
     <table class="skenario">
@@ -4143,49 +4152,6 @@ function lkpdGenerate(){
   document.getElementById("lkpdDocPreview").innerHTML = html;
 }
 
-// Export KHUSUS LKPD (Lembar Kerja Peserta Didik) ke Word (.doc).
-function lkpdExportWord(){
-  const el = document.getElementById("lkpdDocPreview");
-  if(!el || !el.innerHTML.trim()){ alert('Klik "🪄 Buat LKPD Otomatis" terlebih dahulu sebelum mengekspor ke Word.'); return; }
-  const content = el.innerHTML;
-  const styles = `
-    @page WordSection1{ size:21.0cm 29.7cm; margin:2cm 1.8cm 2cm 1.8cm; mso-page-orientation:portrait; }
-    div.WordSection1{ page:WordSection1; }
-    body{font-family:Calibri,Arial,sans-serif; font-size:12pt; color:#1a2138;}
-    h2.doc-title{text-align:center; font-size:15pt; margin-bottom:2px;}
-    .kop{text-align:center; margin-bottom:12px;}
-    .kop .sekolah{font-weight:800; font-size:13.5pt;}
-    .kop .kecil{font-size:10pt; color:#5b6785;}
-    table{border-collapse:collapse;}
-    table.identitas{width:100%; margin-bottom:10px; font-size:11pt;}
-    table.identitas td{padding:3px 6px; vertical-align:top;}
-    table.identitas td.label{width:170px; font-weight:600;}
-    table.identitas td.titik{width:14px;}
-    table.skenario{width:100%; border-collapse:collapse; margin:8px 0 10px; font-size:10.5pt;}
-    table.skenario td, table.skenario th{border:1px solid #999; padding:5px 7px;}
-    table.skenario th{background:#DCE6F5;}
-    .sec-title{background:#EAF1FF; padding:5px 9px; font-weight:bold; margin-top:14px;}
-    .sub-title{font-weight:bold; margin:10px 0 4px;}
-    .tag-model{background:#F2A93B;color:#fff;padding:2px 8px;border-radius:10px;font-size:9pt;margin-left:6px;}
-    ol, ul{margin:6px 0 10px 24px; padding:0;}
-    li{margin-bottom:6px; line-height:1.5;}
-  `;
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-    <head><meta charset="utf-8"><title>LKPD</title><style>${styles}</style></head>
-    <body><div class="WordSection1">${content}</div></body></html>`;
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const mapel = data.mapel[lkpdMapelIdx];
-  const row = lkpdGetRow();
-  const materi = row ? (row.deskripsi || "Materi") : "Materi";
-  const fname = `LKPD - ${mapel ? mapel.nama : "Mapel"} - ${materi}`.replace(/[\\/:*?"<>|]/g,"-").substring(0,120) + ".doc";
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = fname;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
 /* ================= INSTRUMEN SOAL HOTS (C4–C6) ================= */
 let soalMapelIdx = 0, soalRowIdx = 0, soalLastGenerated = [];
 const HOTS_LEVELS = {
@@ -4194,6 +4160,12 @@ const HOTS_LEVELS = {
   C6: { label:"C6 – Mencipta", verbs:["Rancanglah","Susunlah sebuah solusi untuk","Ciptakan alternatif baru bagi","Kembangkan sebuah gagasan untuk mengatasi"] }
 };
 const SOAL_LEVEL_PATTERN = ["C4","C5","C6","C4","C5","C6","C4","C5","C6","C5"]; // 3xC4, 4xC5, 3xC6 dari 10 soal
+const SOAL_STEM_TEMPLATES = [
+  (verb,pointLower,materi)=> `${verb} ${pointLower} dalam konteks ${materi}, kaitkan dengan sebuah contoh/kasus nyata di sekitarmu.`,
+  (verb,pointLower,materi)=> `Perhatikan sebuah situasi nyata terkait ${materi}. ${verb} ${pointLower} berdasarkan situasi tersebut, lengkapi dengan alasan yang logis.`,
+  (verb,pointLower,materi)=> `${verb} ${pointLower} dengan mengaitkannya pada permasalahan sehari-hari yang berhubungan dengan ${materi}.`,
+  (verb,pointLower,materi)=> `Dalam sebuah kasus tentang ${materi}, ${pointLower.charAt(0).toLowerCase()+pointLower.slice(1)} menjadi hal penting. ${verb} hal tersebut disertai contoh konkret.`
+];
 function soalRefreshOptionsOnly(){
   const sel = document.getElementById("soalMapelSelect");
   if(!sel) return;
@@ -4241,12 +4213,17 @@ function soalGenerate(){
   if(!points.length) points = [materi];
   if(info) info.textContent = "";
 
+  // Poin IPK/materi tetap yang dipakai (koridor data), tapi urutan pemakaiannya
+  // diacak setiap kali "Buat Otomatis" diklik agar variasi soal tidak monoton.
+  const pointAt = cyclePool(points);
+
   const soalList = SOAL_LEVEL_PATTERN.map((lvl,i)=>{
-    const point = points[i % points.length];
+    const point = pointAt(i);
     const pointLower = point.charAt(0).toLowerCase() + point.slice(1).replace(/[.]+$/,"");
     const level = HOTS_LEVELS[lvl];
-    const verb = level.verbs[Math.floor(i / 3) % level.verbs.length];
-    const pertanyaan = `${verb} ${pointLower} dalam konteks ${materi}, kaitkan dengan sebuah contoh/kasus nyata di sekitarmu.`;
+    const verb = randPick(level.verbs);
+    const stemTpl = randPick(SOAL_STEM_TEMPLATES);
+    const pertanyaan = stemTpl(verb, pointLower, materi);
     let kunci, pembahasan, rubrik;
     if(lvl === "C4"){
       kunci = `Jawaban memuat: (1) identifikasi unsur/bagian dari ${pointLower}; (2) hubungan sebab-akibat/keterkaitan antarunsur; (3) contoh nyata yang relevan.`;
@@ -4302,56 +4279,6 @@ function soalGenerate(){
     <div class="sec-title">Butir Soal, Kunci Jawaban, Pembahasan &amp; Rubrik</div>
     ${soalCardsHtml}
   </div>`;
-}
-
-// Export KHUSUS Instrumen Soal HOTS (kisi-kisi + butir soal + kunci + pembahasan + rubrik) ke Word (.doc).
-function soalExportWord(){
-  const el = document.getElementById("soalOutput");
-  if(!el || !el.innerHTML.trim()){ alert('Klik "🪄 Buat Otomatis (10 Soal HOTS)" terlebih dahulu sebelum mengekspor ke Word.'); return; }
-  const content = el.innerHTML;
-  const styles = `
-    @page WordSection1{ size:21.0cm 29.7cm; margin:2cm 1.8cm 2cm 1.8cm; mso-page-orientation:portrait; }
-    div.WordSection1{ page:WordSection1; }
-    body{font-family:Calibri,Arial,sans-serif; font-size:11.5pt; color:#1a2138;}
-    h2.doc-title{text-align:center; font-size:15pt; margin-bottom:2px;}
-    .kop{text-align:center; margin-bottom:12px;}
-    .kop .sekolah{font-weight:800; font-size:13.5pt;}
-    .kop .kecil{font-size:10pt; color:#5b6785;}
-    table{border-collapse:collapse;}
-    .sec-title{background:#EAF1FF; padding:5px 9px; font-weight:bold; margin-top:14px;}
-    .tag-model{background:#F2A93B;color:#fff;padding:2px 8px;border-radius:10px;font-size:9pt;margin-left:6px;}
-    .kisi-table{width:100%; border-collapse:collapse; font-size:10.5pt; margin-top:6px;}
-    .kisi-table th, .kisi-table td{border:1px solid #999; padding:5px 7px; vertical-align:top;}
-    .kisi-table th{background:#E4EBFA; text-align:left;}
-    .kisi-table td.center{text-align:center;}
-    .soal-card{border:1px solid #C7D0E0; border-radius:8px; padding:12px 14px; margin-bottom:12px;}
-    .soal-card .soal-no{font-weight:700; color:#4F46E5; margin-right:4px;}
-    .soal-card .soal-q{font-weight:600; margin:6px 0 10px;}
-    .soal-card .soal-block{margin-top:8px;}
-    .soal-card .soal-block .lbl{font-size:9.5pt; font-weight:700; text-transform:uppercase; color:#697488; margin-bottom:3px;}
-    .rubrik-table{width:100%; border-collapse:collapse; margin-top:6px; font-size:10.5pt;}
-    .rubrik-table th, .rubrik-table td{border:1px solid #999; padding:5px 7px; text-align:left; vertical-align:top;}
-    .rubrik-table th{background:#E4EBFA;}
-    .rubrik-table td.skor{text-align:center; font-weight:700; width:15%;}
-    .hots-badge{display:inline-block; font-size:9pt; font-weight:800; padding:2px 8px; border-radius:999px; margin-left:6px;}
-    .hots-c4{background:#DDEBFF; color:#1D4ED8;}
-    .hots-c5{background:#FDE7C8; color:#9A5B00;}
-    .hots-c6{background:#E3D9FB; color:#5B21B6;}
-  `;
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
-    <head><meta charset="utf-8"><title>Instrumen Soal HOTS</title><style>${styles}</style></head>
-    <body><div class="WordSection1">${content}</div></body></html>`;
-  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
-  const mapel = data.mapel[soalMapelIdx];
-  const row = soalGetRow();
-  const materi = row ? (row.deskripsi || "Materi") : "Materi";
-  const fname = `Instrumen Soal HOTS - ${mapel ? mapel.nama : "Mapel"} - ${materi}`.replace(/[\\/:*?"<>|]/g,"-").substring(0,120) + ".doc";
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = fname;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }
 
 /* ================= HASIL ANALISIS ASESMEN ================= */
@@ -4561,13 +4488,16 @@ function ssGeneratePG(pool){
   if(!pool.length) return [];
   const letters = ["A","B","C","D","E"];
   const order = []; for(let i=0;i<35;i++) order.push(SS_PG_PATTERN[i % SS_PG_PATTERN.length]);
+  // Poin IPK/materi tetap yang dipakai (koridor data), tapi urutan pemakaiannya
+  // diacak setiap kali "Buat Otomatis" diklik agar soal tidak selalu sama persis.
+  const entryAt = cyclePool(pool.map((_,idx)=>idx));
   return order.map((lvl,i)=>{
-    const entryIdx = i % pool.length;
+    const entryIdx = entryAt(i);
     const entry = pool[entryIdx];
     const otherIdxs = ssShuffle(pool.map((_,idx)=>idx).filter(idx=>idx!==entryIdx));
     const distractors = otherIdxs.slice(0,4).map(idx=>pool[idx].point);
     while(distractors.length < 4) distractors.push("Pilihan pengecoh — sesuaikan dengan materi lain yang relevan");
-    const tmpl = SS_LEVELS[lvl].templates[i % SS_LEVELS[lvl].templates.length];
+    const tmpl = randPick(SS_LEVELS[lvl].templates);
     const stem = tmpl(ssLower(entry.point));
     let opts = [ { text: ssCap(entry.point), correct:true }, ...distractors.map(d=>({ text: ssCap(d), correct:false })) ];
     ssShuffle(opts);
@@ -4581,13 +4511,15 @@ function ssGeneratePG(pool){
 
 function ssGenerateEsai(pool, offset){
   if(!pool.length) return [];
+  const entryAt = cyclePool(pool);
   return SS_ESAI_PATTERN.map((lvl,i)=>{
-    const entry = pool[(offset+i) % pool.length];
+    const entry = entryAt(offset+i);
     const materi = entry.materi || "materi ini";
     const pointLower = ssLower(entry.point);
     const level = SS_ESAI_LEVELS[lvl];
-    const verb = level.verbs[i % level.verbs.length];
-    const stem = `${verb} ${pointLower} dalam konteks ${materi}, kaitkan dengan sebuah contoh/kasus nyata.`;
+    const verb = randPick(level.verbs);
+    const stemTpl = randPick(SOAL_STEM_TEMPLATES);
+    const stem = stemTpl(verb, pointLower, materi);
     let kunci;
     if(lvl === "C4") kunci = `Jawaban memuat: (1) identifikasi unsur/bagian dari ${pointLower}; (2) keterkaitan antarunsur; (3) contoh nyata yang relevan.`;
     else if(lvl === "C5") kunci = `Jawaban memuat: (1) kriteria penilaian yang digunakan; (2) keputusan yang diambil terhadap ${pointLower}; (3) alasan logis pendukung.`;
