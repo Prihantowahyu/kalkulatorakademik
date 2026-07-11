@@ -494,6 +494,10 @@
         </div>
       </div>
       <div id="semesterBlocks"></div>
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn btn-export" onclick="exportRpeOnlyExcel()">📊 Export Rencana Pekan Efektif ke Excel</button>
+      </div>
+      <p class="field-help" style="margin-top:6px;">Mengekspor <b>khusus</b> lembar Rencana Pekan Efektif (jumlah pekan, pekan tidak efektif, dan jam efektif) semua mata pelajaran — tanpa Program Semester/Tahunan/Silabus/RPP.</p>
     </div>
 
     <!-- STEP 4-5 -->
@@ -655,6 +659,10 @@
       <div id="atpEmptyInfo" class="field-help" style="margin-bottom:10px;"></div>
       <div style="overflow-x:auto;">
         <div id="atpTableWrap"></div>
+      </div>
+
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn btn-export" onclick="exportAtpExcel()">📊 Export ATP &amp; TP ke Excel</button>
       </div>
 
       <div class="badge-info" style="margin-top:16px;">
@@ -892,6 +900,7 @@
       <div class="btn-row" style="margin-bottom:8px;">
         <button class="btn btn-primary" onclick="lkpdGenerate()">🪄 Buat LKPD Otomatis</button>
         <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak / PDF</button>
+        <button class="btn btn-export" onclick="lkpdExportWord()">⬇️ Export Word (.doc)</button>
       </div>
       <div class="field-help" style="margin-bottom:16px;">Isi dulu Mapel &amp; KD di atas (data diambil dari kolom IPK — sama seperti kartu RPP). Setelah dibuat, semua teks bisa diedit langsung di area pratinjau.</div>
 
@@ -924,6 +933,7 @@
       <div class="btn-row" style="margin-bottom:8px;">
         <button class="btn btn-primary" onclick="soalGenerate()">🪄 Buat Otomatis (10 Soal HOTS)</button>
         <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak / PDF</button>
+        <button class="btn btn-export" onclick="soalExportWord()">⬇️ Export Word (.doc)</button>
       </div>
       <div class="field-help" style="margin-bottom:16px;">Soal dibuat dari poin-poin di kolom IPK. Setelah muncul, klik langsung di teksnya untuk mengedit kalimat soal/kunci/pembahasan bila perlu.</div>
 
@@ -1657,6 +1667,26 @@ async function exportAllExcel(){
   if(data.mapel.length === 0){ alert("Tambahkan minimal satu mata pelajaran terlebih dahulu."); return; }
   const wb = new ExcelJS.Workbook();
   for(const mapel of data.mapel){ await buildWorkbookForMapel(wb, mapel); }
+  await downloadWorkbook(wb, `Rencana Pekan Efektif - Semua Mapel.xlsx`);
+}
+
+// Export KHUSUS Rencana Pekan Efektif (tanpa Program Semester/Tahunan/Silabus/RPP) —
+// satu sheet per mata pelajaran x semester, memakai buildSheet() yang sama dengan
+// yang dipakai buildWorkbookForMapel, tapi tanpa dokumen turunan lainnya.
+async function exportRpeOnlyExcel(){
+  if(typeof ExcelJS === "undefined"){ alert("Pustaka Excel belum termuat. Pastikan kamu terhubung ke internet lalu muat ulang halaman."); return; }
+  if(data.mapel.length === 0){ alert("Tambahkan minimal satu mata pelajaran terlebih dahulu di kartu Mata Pelajaran & Jam Pelajaran."); return; }
+  const wb = new ExcelJS.Workbook();
+  data.mapel.forEach(mapel=>{
+    const semsToExport = mapel.semester === "tahun" ? data.semesters : data.semesters.filter(s=>s.id===mapel.semester);
+    semsToExport.forEach(sem=>{
+      let sheetName = `${mapel.nama} - ${sem.nama}`.substring(0,31).replace(/[\\\/\?\*\[\]:]/g,"-");
+      let uniq = sheetName, n=1;
+      while(wb.getWorksheet(uniq)) { uniq = (sheetName.substring(0,28)+"-"+n).substring(0,31); n++; }
+      const ws = wb.addWorksheet(uniq, { views:[{ showGridLines:false }], pageSetup:{ paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:0, margins:{left:0.4,right:0.4,top:0.5,bottom:0.5,header:0.2,footer:0.2} } });
+      buildSheet(ws, mapel, sem);
+    });
+  });
   await downloadWorkbook(wb, `Rencana Pekan Efektif - Semua Mapel.xlsx`);
 }
 
@@ -3933,6 +3963,61 @@ function atpRefresh(){
   wrap.innerHTML = html;
 }
 
+// Export KHUSUS Alur Tujuan Pembelajaran (ATP) & Tujuan Pembelajaran (TP) ke Excel,
+// untuk mata pelajaran yang sedang dipilih di dropdown ATP.
+async function exportAtpExcel(){
+  if(typeof ExcelJS === "undefined"){ alert("Pustaka Excel belum termuat. Pastikan kamu terhubung ke internet lalu muat ulang halaman."); return; }
+  const mapel = data.mapel[atpMapelIdx];
+  if(!mapel){ alert("Pilih mata pelajaran terlebih dahulu."); return; }
+  const rows = mapel.materi.filter(r=>r.jenis==="kd");
+  if(rows.length === 0){ alert(`Belum ada baris KD/IPK untuk "${mapel.nama}". Tambahkan dulu di kartu Program Semester (07).`); return; }
+
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("ATP & TP", { views:[{ showGridLines:false }], pageSetup:{ paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:0, margins:{left:0.4,right:0.4,top:0.5,bottom:0.5,header:0.2,footer:0.2} } });
+  ws.columns = [ {width:5},{width:12},{width:40},{width:36},{width:42},{width:11} ];
+
+  let r = 1;
+  ws.mergeCells(`A${r}:F${r}`);
+  styleCell(ws.getCell(`A${r}`), { font:{bold:true, size:14}, alignment:{horizontal:"center"}, border:false });
+  ws.getCell(`A${r}`).value = "ALUR TUJUAN PEMBELAJARAN (ATP) & TUJUAN PEMBELAJARAN (TP)";
+  r++;
+  ws.mergeCells(`A${r}:F${r}`);
+  styleCell(ws.getCell(`A${r}`), { font:{italic:true, size:11}, alignment:{horizontal:"center"}, border:false });
+  ws.getCell(`A${r}`).value = `${mapel.nama}${data.identitas && data.identitas.sekolah ? " — " + data.identitas.sekolah : ""}`;
+  r += 2;
+
+  const header = ["No","Kode","Alur Tujuan Pembelajaran (ATP)","Tujuan Pembelajaran (TP)","Indikator Ketercapaian Tujuan Pembelajaran (IKTP)","Alokasi (JP)"];
+  header.forEach((h,i)=>{
+    styleCell(ws.getCell(r, i+1), { font:{bold:true}, fill:FILL_LABEL, alignment:{horizontal:"center", vertical:"middle", wrapText:true} });
+    ws.getCell(r, i+1).value = h;
+  });
+  r++;
+
+  rows.forEach((row,i)=>{
+    const materi = row.deskripsi || "materi ini";
+    const tp = row.ipk && row.ipk.trim() ? row.ipk : (row.deskripsi || "(belum ada IPK/TP — lengkapi di Program Semester)");
+    const atp = atpToNarasi(row.ipk || row.deskripsi, materi);
+    const iktpPoints = extractPoints(row.ipk||"").length ? extractPoints(row.ipk||"") : extractPoints(row.ket||"");
+    const iktpText = iktpPoints.length
+      ? iktpPoints.map((p,pi)=>`${pi+1}. Peserta didik dapat ${p.charAt(0).toLowerCase()+p.slice(1)}.`).join("\n")
+      : "(Isi kolom IPK pada Program Semester untuk memunculkan indikator secara otomatis.)";
+    const jp = round1((parseFloat(row.tm)||0) + (parseFloat(row.uk)||0));
+
+    ws.getCell(r,1).value = i+1;
+    ws.getCell(r,2).value = row.kode || "-";
+    ws.getCell(r,3).value = atp;
+    ws.getCell(r,4).value = tp;
+    ws.getCell(r,5).value = iktpText;
+    ws.getCell(r,6).value = `${jp} JP`;
+    for(let c=1;c<=6;c++){
+      styleCell(ws.getCell(r,c), { alignment:{ vertical:"top", wrapText:true, horizontal:(c===1||c===2||c===6)?"center":"left" } });
+    }
+    r++;
+  });
+
+  await downloadWorkbook(wb, `ATP & TP - ${mapel.nama}.xlsx`);
+}
+
 /* ================= LKPD BERBASIS PBL ================= */
 let lkpdMapelIdx = 0, lkpdRowIdx = 0;
 function lkpdRefreshOptionsOnly(){
@@ -4058,6 +4143,49 @@ function lkpdGenerate(){
   document.getElementById("lkpdDocPreview").innerHTML = html;
 }
 
+// Export KHUSUS LKPD (Lembar Kerja Peserta Didik) ke Word (.doc).
+function lkpdExportWord(){
+  const el = document.getElementById("lkpdDocPreview");
+  if(!el || !el.innerHTML.trim()){ alert('Klik "🪄 Buat LKPD Otomatis" terlebih dahulu sebelum mengekspor ke Word.'); return; }
+  const content = el.innerHTML;
+  const styles = `
+    @page WordSection1{ size:21.0cm 29.7cm; margin:2cm 1.8cm 2cm 1.8cm; mso-page-orientation:portrait; }
+    div.WordSection1{ page:WordSection1; }
+    body{font-family:Calibri,Arial,sans-serif; font-size:12pt; color:#1a2138;}
+    h2.doc-title{text-align:center; font-size:15pt; margin-bottom:2px;}
+    .kop{text-align:center; margin-bottom:12px;}
+    .kop .sekolah{font-weight:800; font-size:13.5pt;}
+    .kop .kecil{font-size:10pt; color:#5b6785;}
+    table{border-collapse:collapse;}
+    table.identitas{width:100%; margin-bottom:10px; font-size:11pt;}
+    table.identitas td{padding:3px 6px; vertical-align:top;}
+    table.identitas td.label{width:170px; font-weight:600;}
+    table.identitas td.titik{width:14px;}
+    table.skenario{width:100%; border-collapse:collapse; margin:8px 0 10px; font-size:10.5pt;}
+    table.skenario td, table.skenario th{border:1px solid #999; padding:5px 7px;}
+    table.skenario th{background:#DCE6F5;}
+    .sec-title{background:#EAF1FF; padding:5px 9px; font-weight:bold; margin-top:14px;}
+    .sub-title{font-weight:bold; margin:10px 0 4px;}
+    .tag-model{background:#F2A93B;color:#fff;padding:2px 8px;border-radius:10px;font-size:9pt;margin-left:6px;}
+    ol, ul{margin:6px 0 10px 24px; padding:0;}
+    li{margin-bottom:6px; line-height:1.5;}
+  `;
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+    <head><meta charset="utf-8"><title>LKPD</title><style>${styles}</style></head>
+    <body><div class="WordSection1">${content}</div></body></html>`;
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const mapel = data.mapel[lkpdMapelIdx];
+  const row = lkpdGetRow();
+  const materi = row ? (row.deskripsi || "Materi") : "Materi";
+  const fname = `LKPD - ${mapel ? mapel.nama : "Mapel"} - ${materi}`.replace(/[\\/:*?"<>|]/g,"-").substring(0,120) + ".doc";
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = fname;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 /* ================= INSTRUMEN SOAL HOTS (C4–C6) ================= */
 let soalMapelIdx = 0, soalRowIdx = 0, soalLastGenerated = [];
 const HOTS_LEVELS = {
@@ -4174,6 +4302,56 @@ function soalGenerate(){
     <div class="sec-title">Butir Soal, Kunci Jawaban, Pembahasan &amp; Rubrik</div>
     ${soalCardsHtml}
   </div>`;
+}
+
+// Export KHUSUS Instrumen Soal HOTS (kisi-kisi + butir soal + kunci + pembahasan + rubrik) ke Word (.doc).
+function soalExportWord(){
+  const el = document.getElementById("soalOutput");
+  if(!el || !el.innerHTML.trim()){ alert('Klik "🪄 Buat Otomatis (10 Soal HOTS)" terlebih dahulu sebelum mengekspor ke Word.'); return; }
+  const content = el.innerHTML;
+  const styles = `
+    @page WordSection1{ size:21.0cm 29.7cm; margin:2cm 1.8cm 2cm 1.8cm; mso-page-orientation:portrait; }
+    div.WordSection1{ page:WordSection1; }
+    body{font-family:Calibri,Arial,sans-serif; font-size:11.5pt; color:#1a2138;}
+    h2.doc-title{text-align:center; font-size:15pt; margin-bottom:2px;}
+    .kop{text-align:center; margin-bottom:12px;}
+    .kop .sekolah{font-weight:800; font-size:13.5pt;}
+    .kop .kecil{font-size:10pt; color:#5b6785;}
+    table{border-collapse:collapse;}
+    .sec-title{background:#EAF1FF; padding:5px 9px; font-weight:bold; margin-top:14px;}
+    .tag-model{background:#F2A93B;color:#fff;padding:2px 8px;border-radius:10px;font-size:9pt;margin-left:6px;}
+    .kisi-table{width:100%; border-collapse:collapse; font-size:10.5pt; margin-top:6px;}
+    .kisi-table th, .kisi-table td{border:1px solid #999; padding:5px 7px; vertical-align:top;}
+    .kisi-table th{background:#E4EBFA; text-align:left;}
+    .kisi-table td.center{text-align:center;}
+    .soal-card{border:1px solid #C7D0E0; border-radius:8px; padding:12px 14px; margin-bottom:12px;}
+    .soal-card .soal-no{font-weight:700; color:#4F46E5; margin-right:4px;}
+    .soal-card .soal-q{font-weight:600; margin:6px 0 10px;}
+    .soal-card .soal-block{margin-top:8px;}
+    .soal-card .soal-block .lbl{font-size:9.5pt; font-weight:700; text-transform:uppercase; color:#697488; margin-bottom:3px;}
+    .rubrik-table{width:100%; border-collapse:collapse; margin-top:6px; font-size:10.5pt;}
+    .rubrik-table th, .rubrik-table td{border:1px solid #999; padding:5px 7px; text-align:left; vertical-align:top;}
+    .rubrik-table th{background:#E4EBFA;}
+    .rubrik-table td.skor{text-align:center; font-weight:700; width:15%;}
+    .hots-badge{display:inline-block; font-size:9pt; font-weight:800; padding:2px 8px; border-radius:999px; margin-left:6px;}
+    .hots-c4{background:#DDEBFF; color:#1D4ED8;}
+    .hots-c5{background:#FDE7C8; color:#9A5B00;}
+    .hots-c6{background:#E3D9FB; color:#5B21B6;}
+  `;
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+    <head><meta charset="utf-8"><title>Instrumen Soal HOTS</title><style>${styles}</style></head>
+    <body><div class="WordSection1">${content}</div></body></html>`;
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+  const mapel = data.mapel[soalMapelIdx];
+  const row = soalGetRow();
+  const materi = row ? (row.deskripsi || "Materi") : "Materi";
+  const fname = `Instrumen Soal HOTS - ${mapel ? mapel.nama : "Mapel"} - ${materi}`.replace(/[\\/:*?"<>|]/g,"-").substring(0,120) + ".doc";
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = fname;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 /* ================= HASIL ANALISIS ASESMEN ================= */
