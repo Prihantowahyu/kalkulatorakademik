@@ -5,13 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kalkulator Rencana Pekan Efektif</title>
 <!--
-  LISENSI PENGGUNAAN
+  LISENSI & KETENTUAN PENGGUNAAN
   © 2026 Kalkulator Rencana Pekan Efektif — https://www.instagram.com/prihanto.wahyu/
-  Aplikasi ini GRATIS dan boleh digunakan bebas oleh siapa saja (guru, sekolah,
-  maupun lembaga pendidikan lainnya) untuk keperluan pembelajaran/administrasi.
-  Modifikasi kode sumber untuk kebutuhan sendiri diperbolehkan, namun DILARANG
-  memodifikasi dan/atau memperjualbelikan (menjual, menyewakan, menjadikan
-  produk berbayar/komersial) kode sumber ini tanpa izin tertulis.
+
+  DIPERBOLEHKAN (gratis, tanpa izin tertulis):
+  - Dipakai oleh siapa saja (guru, sekolah, lembaga pendidikan) untuk keperluan
+    pembelajaran/administrasi, termasuk secara komersial dalam arti dipakai di
+    sekolah swasta/lembaga berbayar sebagai ALAT INTERNAL (bukan dijual ulang).
+  - Dimodifikasi untuk kebutuhan sendiri/internal instansi sendiri.
+
+  DILARANG tanpa izin tertulis dari pembuat:
+  - Menjual, menyewakan, atau menjadikan produk/layanan berbayar dari kode
+    sumber ini maupun hasil modifikasinya.
+  - Mendistribusikan ulang salinan yang sudah dimodifikasi ke pihak lain
+    (mis. mengunggah ulang dengan mengklaim sebagai karya sendiri).
+  - Menghapus catatan lisensi/atribusi ini dari kode sumber.
+
+  DISCLAIMER: aplikasi disediakan APA ADANYA ("as is"), tanpa jaminan bebas
+  dari kesalahan. Seluruh konten yang dibuat otomatis (RPP, ATP/TP, LKPD, soal,
+  kunci jawaban, hasil analisis asesmen, dsb) adalah DRAF yang harus diperiksa
+  dan divalidasi sendiri oleh guru/pengguna sebelum dipakai sebagai dokumen
+  resmi — pembuat aplikasi tidak bertanggung jawab atas kesalahan substansi
+  pada dokumen akhir yang dihasilkan pengguna.
+
+  Pertanyaan / izin penggunaan di luar ketentuan di atas: hubungi kontak
+  Instagram di atas.
 -->
   
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -405,6 +423,12 @@
   details > summary{list-style:none;}
   details > summary::before{content:"▸ "; color:var(--green); font-weight:700;}
   details[open] > summary::before{content:"▾ "; }
+
+  /* Pengingat: hasil "Buat Otomatis" adalah draf awal, bukan produk akhir */
+  .gen-warning{display:flex; gap:8px; align-items:flex-start; font-size:12px; line-height:1.55;
+    color:#92400E; background:#FEF3C7; border:1px solid #FDE68A; border-radius:11px;
+    padding:9px 12px; margin:10px 0;}
+  .gen-warning span.ic{flex:none; line-height:1;}
 </style>
 
 </head>
@@ -651,6 +675,7 @@
         </div>
       </div>
       <div class="field-help" style="margin-bottom:10px;">Pastikan kolom <b>IPK</b> mapel ini sudah diisi di kartu Program Semester (07) — indikator ketercapaian dibuat otomatis dari sana.</div>
+      <div class="gen-warning"><span class="ic">⚠️</span><span>Hasil "Susun Otomatis" adalah draf awal berdasarkan IPK yang kamu isi — bukan produk akhir. Baca ulang dan sesuaikan rumusan TP/IKTP sebelum dipakai sebagai acuan resmi Prota/Promes.</span></div>
 
       <div id="atpEmptyInfo" class="field-help" style="margin-bottom:10px;"></div>
       <div style="overflow-x:auto;">
@@ -848,6 +873,7 @@
               <button class="btn btn-export" id="rppBtnExportWord">⬇️ Export Word (.doc)</button>
             </div>
           </div>
+          <div class="gen-warning"><span class="ic">⚠️</span><span>Tujuan, langkah, dan asesmen di bawah tersusun otomatis dari isian di sebelah kiri — tetap baca &amp; sesuaikan sebelum dicetak/diekspor sebagai Modul Ajar resmi.</span></div>
           <div style="overflow-x:auto;">
             <div class="doc" id="rppDocPreview"></div>
           </div>
@@ -894,6 +920,7 @@
         <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak / PDF</button>
       </div>
       <div class="field-help" style="margin-bottom:16px;">Isi dulu Mapel &amp; KD di atas (data diambil dari kolom IPK — sama seperti kartu RPP). Setelah dibuat, semua teks bisa diedit langsung di area pratinjau.</div>
+      <div class="gen-warning"><span class="ic">⚠️</span><span>LKPD ini draf awal hasil generate otomatis — cek kembali kesesuaian kegiatan &amp; instruksinya dengan kondisi kelas sebenarnya sebelum dibagikan ke peserta didik.</span></div>
 
       <div style="overflow-x:auto;">
         <div class="doc" id="lkpdDocPreview" contenteditable="true" spellcheck="false"></div>
@@ -926,6 +953,7 @@
         <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak / PDF</button>
       </div>
       <div class="field-help" style="margin-bottom:16px;">Soal dibuat dari poin-poin di kolom IPK. Setelah muncul, klik langsung di teksnya untuk mengedit kalimat soal/kunci/pembahasan bila perlu.</div>
+      <div class="gen-warning"><span class="ic">⚠️</span><span><b>Wajib dicek sebelum dipakai untuk ulangan/tes:</b> pastikan kunci jawaban, pembahasan, dan rubrik sudah benar secara substansi — hasil generate otomatis adalah titik awal, bukan naskah final.</span></div>
 
       <div id="soalEmptyInfo" class="field-help" style="margin-bottom:10px;"></div>
       <div id="soalOutput" contenteditable="true" spellcheck="false"></div>
@@ -951,6 +979,7 @@
         <button class="btn btn-primary" onclick="asesmenAnalisis()">📊 Analisis Otomatis</button>
         <button class="btn btn-outline" onclick="window.print()">🖨️ Cetak Hasil</button>
       </div>
+      <div class="gen-warning"><span class="ic">⚠️</span><span>Pengelompokan profil &amp; rekomendasi tindak lanjut di bawah dihitung otomatis dari skor yang diinput — tetap gunakan pertimbangan profesional guru sebelum menentukan tindak lanjut untuk peserta didik.</span></div>
 
       <div id="asesmenHasil"></div>
     </div>
@@ -1001,6 +1030,7 @@
         <button class="btn btn-export" onclick="ssExportDocx()">📄 Export ke Word (.docx)</button>
       </div>
       <div class="field-help" style="margin-bottom:16px;">Soal dibuat dari Capaian Pembelajaran &amp; kolom IPK/Ket. tiap KD (kartu Program Semester — poin 07). Untuk STS, soal diambil dari separuh awal KD; untuk SAS, dari seluruh KD semester berjalan. Setelah muncul, klik langsung di teksnya untuk mengedit sebelum mencetak/mengekspor.</div>
+      <div class="gen-warning"><span class="ic">⚠️</span><span><b>Wajib diperiksa sebelum dicetak/diekspor sebagai naskah resmi:</b> baca ulang seluruh soal, kunci PG, dan kunci/rubrik esai — ini naskah ujian sungguhan yang akan dikerjakan peserta didik.</span></div>
 
       <div id="ssEmptyInfo" class="field-help" style="margin-bottom:10px;"></div>
       <div id="ssOutput" contenteditable="true" spellcheck="false"></div>
@@ -1031,6 +1061,10 @@
         ⚠️ Sudah beberapa waktu sejak terakhir kamu ekspor data (.json). Data hanya tersimpan di peramban ini — kalau cache/riwayat browser terhapus, data bisa hilang.
         <button class="btn btn-outline" style="margin-top:8px; padding:6px 10px; font-size:11px; width:100%;" onclick="exportJSON()">⬇️ Ekspor sekarang</button>
       </div>
+      <div class="backup-reminder no-print" id="snapshotRestoreBox" style="display:none; font-size:11.5px; line-height:1.5; color:#1E3A8A; background:#EEF2FF; border:1px solid #C7D2FE; border-radius:10px; padding:10px 12px; margin:6px 0;">
+        <span id="snapshotRestoreText"></span>
+        <button class="btn btn-outline" style="margin-top:8px; padding:6px 10px; font-size:11px; width:100%;" onclick="restoreSnapshot()">↩️ Pulihkan Cadangan</button>
+      </div>
       <div class="badge-info">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#2C4C8C" stroke-width="2" stroke-linecap="round"/></svg>
         <span>Jumlah Jam Efektif = (A) Jumlah Pekan × Jam Pel. − (B) Pekan Tidak Efektif × Jam Pel.</span>
@@ -1042,8 +1076,17 @@
 <footer class="foot">
   <div>Alat bantu internal · data tersimpan otomatis di peramban ini (localStorage).</div>
   <div class="foot-license">
-    © 2026 Kalkulator Rencana Pekan Efektif · <a href="https://www.instagram.com/prihanto.wahyu/" target="_blank" rel="noopener noreferrer">@prihanto.wahyu</a> · Gratis untuk semua, dilarang dimodifikasi/dipakai komersial tanpa izin.
+    © 2026 Kalkulator Rencana Pekan Efektif · <a href="https://www.instagram.com/prihanto.wahyu/" target="_blank" rel="noopener noreferrer">@prihanto.wahyu</a> · Gratis dipakai guru/sekolah untuk pembelajaran &amp; administrasi.
     <br>Terbantu dengan aplikasi ini? <a href="https://trakteer.id/wahyuprihanto" target="_blank" rel="noopener noreferrer">☕ Traktir kopi (opsional)</a>
+    <details class="no-print" style="margin-top:8px;">
+      <summary style="cursor:pointer; font-size:11.5px; color:var(--muted);">Lisensi &amp; Ketentuan Penggunaan selengkapnya</summary>
+      <div style="margin-top:8px; font-size:11.5px; line-height:1.7; color:var(--muted); max-width:640px;">
+        <b>Diperbolehkan (gratis, tanpa izin tertulis):</b> dipakai guru/sekolah/lembaga pendidikan untuk pembelajaran &amp; administrasi (termasuk di sekolah/lembaga berbayar, sebagai alat internal — bukan dijual ulang); dimodifikasi untuk kebutuhan internal sendiri.
+        <br><b>Dilarang tanpa izin tertulis:</b> menjual/menyewakan/menjadikan produk berbayar dari kode ini atau hasil modifikasinya; menyebarluaskan ulang salinan modifikasi ke pihak lain; menghapus atribusi/lisensi ini dari kode sumber.
+        <br><b>Disclaimer:</b> aplikasi disediakan apa adanya, tanpa jaminan bebas kesalahan. Semua hasil "Buat Otomatis" (RPP, ATP/TP, LKPD, soal &amp; kunci jawaban, analisis asesmen) adalah <b>draf</b> yang wajib diperiksa ulang penggunanya sebelum dijadikan dokumen resmi — pembuat aplikasi tidak bertanggung jawab atas kesalahan substansi pada dokumen akhir.
+        <br>Pertanyaan/izin di luar ketentuan ini: hubungi <a href="https://www.instagram.com/prihanto.wahyu/" target="_blank" rel="noopener noreferrer">@prihanto.wahyu</a>.
+      </div>
+    </details>
   </div>
 </footer>
 
@@ -1169,17 +1212,63 @@ function markExported(){
   updateSaveStatus();
 }
 setInterval(()=>{ if(typeof updateSaveStatus === "function") updateSaveStatus(); }, 60000);
+
+/* ---------- SNAPSHOT / UNDO (sebelum Reset & Impor) ----------
+   Reset dan Impor sama-sama MENIMPA seluruh "data". Sebelum ditimpa, simpan
+   satu snapshot terakhir supaya guru bisa memulihkannya kalau ternyata itu
+   tindakan yang tidak sengaja. Hanya menyimpan SATU snapshot (yang paling
+   akhir) — bukan riwayat penuh — supaya sederhana dan hemat localStorage. */
+const SNAPSHOT_KEY = STORAGE_KEY + ":snapshot";
+function saveSnapshot(reason){
+  try{
+    localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ data, ts: Date.now(), reason }));
+  }catch(e){ /* localStorage penuh/diblokir — snapshot dilewati, tidak fatal */ }
+}
+function loadSnapshot(){
+  try{ const raw = localStorage.getItem(SNAPSHOT_KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; }
+}
+function snapshotReasonLabel(reason){
+  return reason === "import" ? "sebelum Impor data" : "sebelum Reset";
+}
+function restoreSnapshot(){
+  const snap = loadSnapshot();
+  if(!snap){ alert("Tidak ada data yang bisa dipulihkan."); return; }
+  const when = timeAgoID(snap.ts);
+  const ok = confirm(`Pulihkan data ${snapshotReasonLabel(snap.reason)} (${when})?\n\nData yang ada SEKARANG akan ditimpa dengan data hasil pemulihan ini.`);
+  if(!ok) return;
+  data = migrate(snap.data);
+  save();
+  renderAll();
+  if(typeof rppInit === "function") rppInit();
+  if(typeof atpLkpdSoalAsesmenInit === "function") atpLkpdSoalAsesmenInit();
+  updateSnapshotBanner();
+  alert("Data berhasil dipulihkan.");
+}
+function updateSnapshotBanner(){
+  const box = document.getElementById("snapshotRestoreBox");
+  if(!box) return;
+  const snap = loadSnapshot();
+  if(snap){
+    box.style.display = "block";
+    document.getElementById("snapshotRestoreText").textContent =
+      `Ada cadangan data dari ${timeAgoID(snap.ts)} (${snapshotReasonLabel(snap.reason)}). Bisa dipulihkan kalau perlu.`;
+  } else {
+    box.style.display = "none";
+  }
+}
 function resetAll(){
   // PENTING (bugfix): sebelumnya reset hanya mengganti "data" utama (identitas/pekan/mapel),
   // sedangkan state form RPP (model, media, skenario waktu, semua isian teks) dan draft RPP
   // tersimpan di localStorage terpisah tidak ikut direset — RPP jadi menampilkan sisa data lama
   // yang sudah tidak nyambung dengan data yang baru saja direset. Sekarang semuanya dikembalikan
   // ke kondisi awal sekaligus.
+  saveSnapshot("reset");
   data = migrate(defaultData());
   save();
   rppSaveDrafts([]);
   renderAll();
   if(typeof rppResetFormToDefaults === "function") rppResetFormToDefaults();
+  updateSnapshotBanner();
 }
 function round1(n){ return Math.round(n*10)/10; }
 function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[s])); }
@@ -1453,11 +1542,14 @@ function importJSON(evt){
     try{
       const parsed = JSON.parse(e.target.result);
       if(parsed.semesters && parsed.mapel){
+        if(!confirm("Impor akan MENIMPA seluruh data yang ada sekarang (Identitas, Pekan Efektif, Mapel/KD, dst).\n\nData saat ini akan dicadangkan sementara dan bisa dipulihkan lewat tombol \"Pulihkan Cadangan\" kalau ternyata keliru.\n\nLanjutkan impor?")) return;
+        saveSnapshot("import");
         data = migrate(parsed);
         save();
         if(Array.isArray(parsed.rppDrafts)) rppSaveDrafts(parsed.rppDrafts);
         renderAll();
         if(typeof rppRenderDrafts === "function") rppRenderDrafts();
+        updateSnapshotBanner();
       }
       else alert("Format file tidak valid.");
     }catch(err){ alert("Gagal membaca file: " + err.message); }
@@ -4807,6 +4899,7 @@ renderSymbolList();
 rppInit();
 atpLkpdSoalAsesmenInit();
 updateSaveStatus();
+updateSnapshotBanner();
 </script>
 </body>
 </html>
